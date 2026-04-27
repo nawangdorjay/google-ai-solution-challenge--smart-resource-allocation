@@ -1,0 +1,772 @@
+[
+  {
+    "request_id": "demo",
+    "request_title": "Emergency Medical Camp",
+    "matches": [
+      {
+        "volunteer_id": "v6",
+        "name": "Sunita Rao",
+        "score": 0.984,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.716
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency",
+          "Experienced volunteer"
+        ],
+        "explanation": "Sunita Rao is available and matches 100% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Excellent skill match, Same city, Available now, Critical urgency, Experienced volunteer."
+      },
+      {
+        "volunteer_id": "v1",
+        "name": "Amit Sharma",
+        "score": 0.98,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.638
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency"
+        ],
+        "explanation": "Amit Sharma is available and matches 100% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Excellent skill match, Same city, Available now, Critical urgency."
+      },
+      {
+        "volunteer_id": "v4",
+        "name": "Priya Kapoor",
+        "score": 0.749,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 0.5,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.417
+        },
+        "reason_tags": [
+          "Strong skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency"
+        ],
+        "explanation": "Priya Kapoor is available and matches 50% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Strong skill match, Same city, Available now, Critical urgency."
+      }
+    ],
+    "timestamp": "2026-04-23T22:56:55.931121"
+  },
+  {
+    "request_id": "demo",
+    "request_title": "Emergency Medical Camp",
+    "matches": [
+      {
+        "volunteer_id": "v6",
+        "name": "Sunita Rao",
+        "score": 0.984,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.716
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency",
+          "Experienced volunteer"
+        ],
+        "explanation": "Sunita Rao is available and matches 100% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Excellent skill match, Same city, Available now, Critical urgency, Experienced volunteer."
+      },
+      {
+        "volunteer_id": "v1",
+        "name": "Amit Sharma",
+        "score": 0.98,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.638
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency"
+        ],
+        "explanation": "Amit Sharma is available and matches 100% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Excellent skill match, Same city, Available now, Critical urgency."
+      },
+      {
+        "volunteer_id": "v4",
+        "name": "Priya Kapoor",
+        "score": 0.749,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 0.5,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.417
+        },
+        "reason_tags": [
+          "Strong skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency"
+        ],
+        "explanation": "Priya Kapoor is available and matches 50% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Strong skill match, Same city, Available now, Critical urgency."
+      }
+    ],
+    "timestamp": "2026-04-23T23:05:14.386740"
+  },
+  {
+    "request_id": "api",
+    "request_title": "Teach For India \u2014 Teaching, English",
+    "matches": [
+      {
+        "volunteer_id": "v2",
+        "name": "Riya Mehta",
+        "score": 0.548,
+        "confidence": "Medium",
+        "breakdown": {
+          "skill": 0.5,
+          "distance": 0.5,
+          "availability": 1.0,
+          "urgency": 0.8,
+          "experience": 0.5
+        },
+        "reason_tags": [
+          "Strong skill match",
+          "Different city (remote contribution)",
+          "Available now",
+          "High urgency"
+        ],
+        "explanation": "Riya Mehta is available and matches 50% of required skills for 'Teach For India \u2014 Teaching, English' (different city, high urgency) \u2014 key reasons: Strong skill match, Different city (remote contribution), Available now, High urgency."
+      }
+    ],
+    "timestamp": "2026-04-23T23:07:59.723131"
+  },
+  {
+    "request_id": "api",
+    "request_title": "Test Request",
+    "matches": [
+      {
+        "volunteer_id": "v2",
+        "name": "Riya Mehta",
+        "score": 0.888,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 0.5,
+          "availability": 1.0,
+          "urgency": 0.6,
+          "experience": 0.5
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Different city (remote contribution)",
+          "Available now"
+        ],
+        "explanation": "Riya Mehta is available and matches 100% of required skills for 'Test Request' (different city, moderate urgency) \u2014 key reasons: Excellent skill match, Different city (remote contribution), Available now."
+      }
+    ],
+    "timestamp": "2026-04-23T23:08:53.636636"
+  },
+  {
+    "request_id": "demo",
+    "request_title": "Emergency Medical Camp",
+    "matches": [
+      {
+        "volunteer_id": "v6",
+        "name": "Sunita Rao",
+        "score": 0.984,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.716
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency",
+          "Experienced volunteer"
+        ],
+        "explanation": "Sunita Rao is available and matches 100% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Excellent skill match, Same city, Available now, Critical urgency, Experienced volunteer."
+      },
+      {
+        "volunteer_id": "v1",
+        "name": "Amit Sharma",
+        "score": 0.98,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.638
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency"
+        ],
+        "explanation": "Amit Sharma is available and matches 100% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Excellent skill match, Same city, Available now, Critical urgency."
+      },
+      {
+        "volunteer_id": "v4",
+        "name": "Priya Kapoor",
+        "score": 0.749,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 0.5,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.417
+        },
+        "reason_tags": [
+          "Strong skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency"
+        ],
+        "explanation": "Priya Kapoor is available and matches 50% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Strong skill match, Same city, Available now, Critical urgency."
+      }
+    ],
+    "timestamp": "2026-04-23T23:19:41.457673"
+  },
+  {
+    "request_id": "demo",
+    "request_title": "Emergency Medical Camp",
+    "matches": [
+      {
+        "volunteer_id": "v6",
+        "name": "Sunita Rao",
+        "score": 0.984,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.716
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency",
+          "Experienced volunteer"
+        ],
+        "explanation": "Sunita Rao is available and matches 100% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Excellent skill match, Same city, Available now, Critical urgency, Experienced volunteer."
+      },
+      {
+        "volunteer_id": "v1",
+        "name": "Amit Sharma",
+        "score": 0.98,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.638
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency"
+        ],
+        "explanation": "Amit Sharma is available and matches 100% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Excellent skill match, Same city, Available now, Critical urgency."
+      },
+      {
+        "volunteer_id": "v4",
+        "name": "Priya Kapoor",
+        "score": 0.749,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 0.5,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.417
+        },
+        "reason_tags": [
+          "Strong skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency"
+        ],
+        "explanation": "Priya Kapoor is available and matches 50% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Strong skill match, Same city, Available now, Critical urgency."
+      }
+    ],
+    "timestamp": "2026-04-23T23:20:57.734258"
+  },
+  {
+    "request_id": "demo",
+    "request_title": "Emergency Medical Camp",
+    "matches": [
+      {
+        "volunteer_id": "v6",
+        "name": "Sunita Rao",
+        "score": 0.984,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.716
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency",
+          "Experienced volunteer"
+        ],
+        "explanation": "Sunita Rao is available and matches 100% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Excellent skill match, Same city, Available now, Critical urgency, Experienced volunteer."
+      },
+      {
+        "volunteer_id": "v1",
+        "name": "Amit Sharma",
+        "score": 0.98,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.638
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency"
+        ],
+        "explanation": "Amit Sharma is available and matches 100% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Excellent skill match, Same city, Available now, Critical urgency."
+      },
+      {
+        "volunteer_id": "v4",
+        "name": "Priya Kapoor",
+        "score": 0.749,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 0.5,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.417
+        },
+        "reason_tags": [
+          "Strong skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency"
+        ],
+        "explanation": "Priya Kapoor is available and matches 50% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Strong skill match, Same city, Available now, Critical urgency."
+      }
+    ],
+    "timestamp": "2026-04-23T23:23:46.890468"
+  },
+  {
+    "request_id": "api",
+    "request_title": "Test NGO \u2014 Request",
+    "matches": [],
+    "timestamp": "2026-04-23T23:28:40.398993"
+  },
+  {
+    "request_id": "api",
+    "request_title": "Test NGO \u2014 Medical",
+    "matches": [],
+    "timestamp": "2026-04-23T23:29:26.881975"
+  },
+  {
+    "request_id": "api",
+    "request_title": "Delhi Edu \u2014 Request",
+    "matches": [
+      {
+        "volunteer_id": "1",
+        "name": "John Doe",
+        "score": 0.962,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 0.8,
+          "experience": 0.5
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Same city",
+          "Available now",
+          "High urgency"
+        ],
+        "explanation": "John Doe is available and matches 100% of required skills for 'Delhi Edu \u2014 Request' (same city, high urgency) \u2014 key reasons: Excellent skill match, Same city, Available now, High urgency."
+      }
+    ],
+    "timestamp": "2026-04-23T23:31:06.194586"
+  },
+  {
+    "request_id": "api",
+    "request_title": "DB Test NGO \u2014 Request",
+    "matches": [
+      {
+        "volunteer_id": "1",
+        "name": "John Doe",
+        "score": 0.962,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 0.8,
+          "experience": 0.5
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Same city",
+          "Available now",
+          "High urgency"
+        ],
+        "explanation": "John Doe is available and matches 100% of required skills for 'DB Test NGO \u2014 Request' (same city, high urgency) \u2014 key reasons: Excellent skill match, Same city, Available now, High urgency."
+      },
+      {
+        "volunteer_id": "2",
+        "name": "DB Test Vol",
+        "score": 0.962,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 0.8,
+          "experience": 0.5
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Same city",
+          "Available now",
+          "High urgency"
+        ],
+        "explanation": "DB Test Vol is available and matches 100% of required skills for 'DB Test NGO \u2014 Request' (same city, high urgency) \u2014 key reasons: Excellent skill match, Same city, Available now, High urgency."
+      }
+    ],
+    "timestamp": "2026-04-23T23:38:10.714213"
+  },
+  {
+    "request_id": "demo",
+    "request_title": "Emergency Medical Camp",
+    "matches": [],
+    "timestamp": "2026-04-23T23:43:52.302339"
+  },
+  {
+    "request_id": "api",
+    "request_title": "DB Test NGO \u2014 Request",
+    "matches": [
+      {
+        "volunteer_id": "1",
+        "name": "John Doe",
+        "score": 0.962,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 0.8,
+          "experience": 0.5
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Same city",
+          "Available now",
+          "High urgency"
+        ],
+        "explanation": "John Doe is available and matches 100% of required skills for 'DB Test NGO \u2014 Request' (same city, high urgency) \u2014 key reasons: Excellent skill match, Same city, Available now, High urgency."
+      }
+    ],
+    "timestamp": "2026-04-23T23:44:07.878758"
+  },
+  {
+    "request_id": "api",
+    "request_title": "DB Test NGO \u2014 Teaching",
+    "matches": [
+      {
+        "volunteer_id": "1",
+        "name": "John Doe",
+        "score": 0.962,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 0.8,
+          "experience": 0.5
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Same city",
+          "Available now",
+          "High urgency"
+        ],
+        "explanation": "John Doe is available and matches 100% of required skills for 'DB Test NGO \u2014 Teaching' (same city, high urgency) \u2014 key reasons: Excellent skill match, Same city, Available now, High urgency."
+      }
+    ],
+    "timestamp": "2026-04-23T23:44:12.691763"
+  },
+  {
+    "request_id": "demo",
+    "request_title": "Emergency Medical Camp",
+    "matches": [
+      {
+        "volunteer_id": "v6",
+        "name": "Sunita Rao",
+        "score": 0.984,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.716
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency",
+          "Experienced volunteer"
+        ],
+        "explanation": "Sunita Rao is available and matches 100% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Excellent skill match, Same city, Available now, Critical urgency, Experienced volunteer."
+      },
+      {
+        "volunteer_id": "v1",
+        "name": "Amit Sharma",
+        "score": 0.98,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.638
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency"
+        ],
+        "explanation": "Amit Sharma is available and matches 100% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Excellent skill match, Same city, Available now, Critical urgency."
+      },
+      {
+        "volunteer_id": "v4",
+        "name": "Priya Kapoor",
+        "score": 0.749,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 0.5,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.417
+        },
+        "reason_tags": [
+          "Strong skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency"
+        ],
+        "explanation": "Priya Kapoor is available and matches 50% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Strong skill match, Same city, Available now, Critical urgency."
+      }
+    ],
+    "timestamp": "2026-04-23T23:46:28.994102"
+  },
+  {
+    "request_id": "demo",
+    "request_title": "Emergency Medical Camp",
+    "matches": [
+      {
+        "volunteer_id": "v6",
+        "name": "Sunita Rao",
+        "score": 0.984,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.716
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency",
+          "Experienced volunteer"
+        ],
+        "explanation": "Sunita Rao is available and matches 100% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Excellent skill match, Same city, Available now, Critical urgency, Experienced volunteer."
+      },
+      {
+        "volunteer_id": "v1",
+        "name": "Amit Sharma",
+        "score": 0.98,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.638
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency"
+        ],
+        "explanation": "Amit Sharma is available and matches 100% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Excellent skill match, Same city, Available now, Critical urgency."
+      },
+      {
+        "volunteer_id": "v4",
+        "name": "Priya Kapoor",
+        "score": 0.749,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 0.5,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.417
+        },
+        "reason_tags": [
+          "Strong skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency"
+        ],
+        "explanation": "Priya Kapoor is available and matches 50% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Strong skill match, Same city, Available now, Critical urgency."
+      }
+    ],
+    "timestamp": "2026-04-23T23:52:52.970117"
+  },
+  {
+    "request_id": "demo",
+    "request_title": "Emergency Medical Camp",
+    "matches": [
+      {
+        "volunteer_id": "v6",
+        "name": "Sunita Rao",
+        "score": 0.984,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.716
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency",
+          "Experienced volunteer"
+        ],
+        "explanation": "Sunita Rao is available and matches 100% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Excellent skill match, Same city, Available now, Critical urgency, Experienced volunteer."
+      },
+      {
+        "volunteer_id": "v1",
+        "name": "Amit Sharma",
+        "score": 0.98,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.638
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency"
+        ],
+        "explanation": "Amit Sharma is available and matches 100% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Excellent skill match, Same city, Available now, Critical urgency."
+      },
+      {
+        "volunteer_id": "v4",
+        "name": "Priya Kapoor",
+        "score": 0.749,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 0.5,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.417
+        },
+        "reason_tags": [
+          "Strong skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency"
+        ],
+        "explanation": "Priya Kapoor is available and matches 50% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Strong skill match, Same city, Available now, Critical urgency."
+      }
+    ],
+    "timestamp": "2026-04-23T23:53:27.633382"
+  },
+  {
+    "request_id": "api",
+    "request_title": "DB Test NGO \u2014 Request",
+    "matches": [
+      {
+        "volunteer_id": "v2",
+        "name": "Riya Mehta",
+        "score": 0.907,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 0.5,
+          "availability": 1.0,
+          "urgency": 0.8,
+          "experience": 0.5
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Different city (remote contribution)",
+          "Available now",
+          "High urgency"
+        ],
+        "explanation": "Riya Mehta is available and matches 100% of required skills for 'DB Test NGO \u2014 Request' (different city, high urgency) \u2014 key reasons: Excellent skill match, Different city (remote contribution), Available now, High urgency."
+      }
+    ],
+    "timestamp": "2026-04-23T23:53:43.537012"
+  }
+]

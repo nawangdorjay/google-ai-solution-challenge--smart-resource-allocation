@@ -1,0 +1,27 @@
+# Git and environment ignores
+.git/
+.gitignore
+.env
+*_secrets.py
+config.pyc
+
+# Local dependencies
+venv/
+env/
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# ML/temporary files
+*.pkl
+*.log
+*.joblib

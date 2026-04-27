@@ -1,0 +1,16 @@
+name ,phone/email,skills ,location (city),availability 
+John Doe,9876543210,"medical, teaching",New Delhi,full time
+Jane Smith,9876543211,"teaching,medical",Delhi, part time; evenings 
+,9876543212,"logistics, medical, rescue",Mumbai,weekend
+Rahul Kumar,9876543213,"rescue, teaching",Bangalore,full time
+Priya Mehta,9876543214,"medical, logistics",New Delhi,fulltime
+Vikas Sharma,9876543215,logistics,Gurgaon,weekends only
+Sneha,9876543216,"medical, teaching, rescue","Pitampura, Delhi, IN",  evenings  
+Amit Patel,9876543217,"rescue, medical",Ahmedabad,full time
+Kavita Reddy,9876543218,"teaching, medical",Hyderabad,weekend
+Rohan Singh,9876543219,"teaching, logistics",Noida, at night 
+Lata Joshi,,medical,Delhi NCR,full time
+Sanjay Bannerjee,9876543221,"logistics, rescue",Pune,mornings only
+Meera Deshpande,9876543222,teaching,Indore,full time
+Nitin Rao,9876543223,"rescue, medical, teaching",Bhopal,weekends & evenings
+Pooja,9876543224,"medical, teaching, logistics, rescue",New Delhi,full time

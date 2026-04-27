@@ -1,0 +1,2591 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lapper | Smart Resource Allocation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* =============================================
+       CSS VARIABLES + THEME SYSTEM
+    ============================================= */
+    :root {
+      --bg-base:       #050c1a;
+      --bg-surface:    #080f1e;
+      --bg-card:       rgba(10, 20, 38, 0.75);
+      --bg-card-hover: rgba(13, 26, 48, 0.9);
+      --border:        rgba(255,255,255,0.07);
+      --border-glow:   rgba(20,220,180,0.25);
+      --text-primary:  #f0f6ff;
+      --text-secondary:#7a90b0;
+      --text-muted:    #3d5278;
+      --accent-teal:   #14dcb4;
+      --accent-gold:   #f0a845;
+      --accent-violet: #8b5cf6;
+      --accent-rose:   #f43f5e;
+      --accent-blue:   #3b82f6;
+      --glow-teal:     0 0 24px rgba(20,220,180,0.18), 0 0 48px rgba(20,220,180,0.07);
+      --glow-gold:     0 0 24px rgba(240,168,69,0.18);
+      --shadow-card:   0 8px 32px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.04) inset;
+      --radius-xl:     1.25rem;
+      --radius-2xl:    1.75rem;
+      --radius-3xl:    2.25rem;
+      --sidebar-w:     72px;
+    }
+    [data-theme="light"] {
+      --bg-base:       #f0f4fc;
+      --bg-surface:    #e8eef8;
+      --bg-card:       rgba(255,255,255,0.85);
+      --bg-card-hover: rgba(255,255,255,0.97);
+      --border:        rgba(100,130,180,0.15);
+      --border-glow:   rgba(14,165,133,0.3);
+      --text-primary:  #0d1b2e;
+      --text-secondary:#4a6080;
+      --text-muted:    #8aa0c0;
+      --accent-teal:   #0d9488;
+      --accent-gold:   #d97706;
+      --accent-violet: #7c3aed;
+      --accent-rose:   #e11d48;
+      --accent-blue:   #2563eb;
+      --glow-teal:     0 0 18px rgba(13,148,136,0.15);
+      --glow-gold:     0 0 18px rgba(217,119,6,0.15);
+      --shadow-card:   0 4px 24px rgba(50,80,140,0.1), 0 1px 0 rgba(255,255,255,0.7) inset;
+    }
+
+    /* =============================================
+       BASE RESETS
+    ============================================= */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Instrument Sans', sans-serif;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background 0.4s ease, color 0.4s ease;
+    }
+    h1, h2, h3, h4, .font-display {
+      font-family: 'Bricolage Grotesque', sans-serif;
+    }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 4px; }
+
+    /* =============================================
+       ANIMATED BACKGROUND MESH
+    ============================================= */
+    .bg-mesh {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      overflow: hidden;
+    }
+    .bg-mesh::before {
+      content: '';
+      position: absolute; inset: -50%;
+      background: radial-gradient(ellipse 60% 50% at 20% 30%, rgba(20,220,180,0.05) 0%, transparent 70%),
+                  radial-gradient(ellipse 50% 60% at 80% 70%, rgba(139,92,246,0.06) 0%, transparent 70%),
+                  radial-gradient(ellipse 40% 40% at 50% 10%, rgba(59,130,246,0.04) 0%, transparent 60%);
+      animation: meshFloat 18s ease-in-out infinite alternate;
+    }
+    @keyframes meshFloat {
+      0%   { transform: translate(0,0) scale(1); }
+      50%  { transform: translate(2%,1%) scale(1.02); }
+      100% { transform: translate(-1%, 2%) scale(0.98); }
+    }
+    [data-theme="light"] .bg-mesh::before {
+      background: radial-gradient(ellipse 60% 50% at 20% 30%, rgba(13,148,136,0.06) 0%, transparent 70%),
+                  radial-gradient(ellipse 50% 60% at 80% 70%, rgba(124,58,237,0.05) 0%, transparent 70%),
+                  radial-gradient(ellipse 40% 40% at 50% 90%, rgba(59,130,246,0.05) 0%, transparent 60%);
+    }
+
+    /* =============================================
+       CARD BASE
+    ============================================= */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: var(--radius-2xl);
+      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease, background 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-card), 0 16px 48px rgba(0,0,0,0.25);
+      border-color: rgba(255,255,255,0.12);
+    }
+    [data-theme="light"] .card:hover { box-shadow: var(--shadow-card), 0 12px 40px rgba(50,80,140,0.14); }
+    .card-glow:hover {
+      border-color: var(--border-glow);
+      box-shadow: var(--shadow-card), var(--glow-teal);
+    }
+
+    /* =============================================
+       SIDEBAR
+    ============================================= */
+    .sidebar {
+      position: fixed; top: 0; left: 0; height: 100vh;
+      width: var(--sidebar-w);
+      z-index: 50;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 1.5rem 0;
+      background: var(--bg-card);
+      border-right: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      transition: width 0.3s cubic-bezier(.4,0,.2,1), background 0.3s ease;
+    }
+    .sidebar-logo {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-weight: 800;
+      font-size: 1.5rem;
+      color: var(--accent-teal);
+      letter-spacing: -2px;
+      margin-bottom: 2.5rem;
+      text-shadow: var(--glow-teal);
+    }
+    .nav-item {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 0.5rem;
+      position: relative;
+    }
+    .nav-item:hover, .nav-item.active {
+      background: rgba(20,220,180,0.1);
+      color: var(--accent-teal);
+      box-shadow: 0 0 0 1px rgba(20,220,180,0.2);
+    }
+    .nav-item.active::before {
+      content: '';
+      position: absolute; left: -12px; top: 50%; transform: translateY(-50%);
+      width: 3px; height: 22px;
+      background: var(--accent-teal);
+      border-radius: 0 2px 2px 0;
+      box-shadow: 0 0 8px var(--accent-teal);
+    }
+    .nav-tooltip {
+      position: absolute; left: calc(100% + 14px); top: 50%; transform: translateY(-50%);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      font-size: 11px; font-weight: 600;
+      padding: 4px 10px; border-radius: 8px;
+      white-space: nowrap; opacity: 0; pointer-events: none;
+      transition: opacity 0.15s ease;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    .nav-item:hover .nav-tooltip { opacity: 1; }
+    [data-theme="light"] .sidebar { background: rgba(255,255,255,0.9); border-right-color: rgba(100,130,180,0.15); }
+
+    /* =============================================
+       TOPBAR
+    ============================================= */
+    .topbar {
+      position: sticky; top: 0; z-index: 40;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 0.875rem 2rem;
+      display: flex; align-items: center; gap: 1rem;
+      transition: background 0.3s ease;
+    }
+
+    /* =============================================
+       SEARCH INPUT
+    ============================================= */
+    .search-input {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      border-radius: 12px;
+      padding: 0.5rem 1rem 0.5rem 2.5rem;
+      font-size: 13px;
+      width: 280px;
+      transition: all 0.2s ease;
+      outline: none;
+      font-family: 'Instrument Sans', sans-serif;
+    }
+    .search-input::placeholder { color: var(--text-muted); }
+    .search-input:focus {
+      border-color: rgba(20,220,180,0.4);
+      box-shadow: 0 0 0 3px rgba(20,220,180,0.08);
+      background: rgba(255,255,255,0.06);
+    }
+    [data-theme="light"] .search-input {
+      background: rgba(0,0,0,0.04);
+      color: var(--text-primary);
+    }
+
+    /* =============================================
+       BUTTONS
+    ============================================= */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 0.55rem 1.15rem;
+      border-radius: 11px;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s ease;
+      border: 1px solid transparent;
+      font-family: 'Instrument Sans', sans-serif;
+      white-space: nowrap;
+    }
+    .btn-teal {
+      background: linear-gradient(135deg, #14dcb4, #0ea5e9);
+      color: #050c1a;
+      box-shadow: 0 4px 14px rgba(20,220,180,0.3);
+    }
+    .btn-teal:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(20,220,180,0.45);
+    }
+    .btn-teal:active { transform: translateY(0); }
+    .btn-teal:disabled {
+      opacity: 0.6; cursor: not-allowed; transform: none;
+    }
+    .btn-ghost {
+      background: rgba(255,255,255,0.04);
+      border-color: var(--border);
+      color: var(--text-secondary);
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); }
+    .btn-violet {
+      background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(139,92,246,0.3);
+    }
+    .btn-violet:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(139,92,246,0.4); }
+    .btn-rose {
+      background: linear-gradient(135deg, #f43f5e, #e11d48);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(244,63,94,0.3);
+    }
+    [data-theme="light"] .btn-ghost { background: rgba(0,0,0,0.04); border-color: rgba(100,130,180,0.2); }
+
+    /* =============================================
+       FORM INPUTS
+    ============================================= */
+    .form-input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      border-radius: 12px;
+      padding: 0.7rem 1rem;
+      font-size: 13.5px;
+      transition: all 0.2s ease;
+      outline: none;
+      font-family: 'Instrument Sans', sans-serif;
+    }
+    .form-input::placeholder { color: var(--text-muted); }
+    .form-input:focus {
+      border-color: rgba(20,220,180,0.45);
+      box-shadow: 0 0 0 3px rgba(20,220,180,0.08);
+      background: rgba(20,220,180,0.03);
+    }
+    .form-input-violet:focus {
+      border-color: rgba(139,92,246,0.45);
+      box-shadow: 0 0 0 3px rgba(139,92,246,0.08);
+      background: rgba(139,92,246,0.03);
+    }
+    .form-select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a90b0' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 2rem;
+    }
+    [data-theme="light"] .form-input {
+      background: rgba(0,0,0,0.03);
+      border-color: rgba(100,130,180,0.2);
+    }
+    [data-theme="light"] .form-input:focus {
+      background: rgba(13,148,136,0.04);
+    }
+
+    /* =============================================
+       SKILL TAGS
+    ============================================= */
+    .skill-tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 11.5px; font-weight: 600;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      background: rgba(255,255,255,0.03);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .skill-tag:hover { border-color: rgba(20,220,180,0.3); color: var(--text-primary); }
+    .skill-tag.selected {
+      background: rgba(20,220,180,0.12);
+      border-color: rgba(20,220,180,0.35);
+      color: var(--accent-teal);
+    }
+    .skill-tag.selected-violet {
+      background: rgba(139,92,246,0.12);
+      border-color: rgba(139,92,246,0.35);
+      color: var(--accent-violet);
+    }
+
+    /* =============================================
+       BADGES + STATUS DOTS
+    ============================================= */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 9px; border-radius: 6px;
+      font-size: 11px; font-weight: 700;
+    }
+    .badge-teal   { background: rgba(20,220,180,0.12); color: var(--accent-teal); border: 1px solid rgba(20,220,180,0.25); }
+    .badge-gold   { background: rgba(240,168,69,0.12);  color: var(--accent-gold); border: 1px solid rgba(240,168,69,0.25); }
+    .badge-violet { background: rgba(139,92,246,0.12); color: var(--accent-violet); border: 1px solid rgba(139,92,246,0.2); }
+    .badge-rose   { background: rgba(244,63,94,0.12);  color: var(--accent-rose); border: 1px solid rgba(244,63,94,0.2); }
+    .badge-blue   { background: rgba(59,130,246,0.12); color: var(--accent-blue); border: 1px solid rgba(59,130,246,0.2); }
+    .badge-muted  { background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid var(--border); }
+    .pulse-dot {
+      display: inline-block; width: 7px; height: 7px;
+      border-radius: 50%; background: var(--accent-teal);
+      box-shadow: 0 0 6px var(--accent-teal);
+      animation: pulseDot 2s ease-in-out infinite;
+    }
+    @keyframes pulseDot {
+      0%,100% { opacity:1; transform:scale(1); }
+      50%      { opacity:0.6; transform:scale(1.35); }
+    }
+
+    /* =============================================
+       STAT CARD COUNTERS
+    ============================================= */
+    .stat-number {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 2.6rem; font-weight: 800;
+      letter-spacing: -2px; line-height: 1;
+      color: var(--text-primary);
+      transition: color 0.3s ease;
+    }
+
+    /* =============================================
+       PROGRESS BARS
+    ============================================= */
+    .progress-track {
+      width: 100%; height: 5px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 99px; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; border-radius: 99px;
+      background: linear-gradient(90deg, var(--accent-teal), #0ea5e9);
+      box-shadow: 0 0 8px rgba(20,220,180,0.4);
+      transition: width 1.2s cubic-bezier(.4,0,.2,1);
+    }
+    .progress-fill-gold  { background: linear-gradient(90deg, var(--accent-gold), #fbbf24); box-shadow: 0 0 8px rgba(240,168,69,0.4); }
+    .progress-fill-violet { background: linear-gradient(90deg, var(--accent-violet), #a78bfa); box-shadow: 0 0 8px rgba(139,92,246,0.4); }
+    .progress-fill-rose   { background: linear-gradient(90deg, var(--accent-rose), #fb7185); box-shadow: 0 0 8px rgba(244,63,94,0.3); }
+    [data-theme="light"] .progress-track { background: rgba(0,0,0,0.08); }
+
+    /* =============================================
+       VOLUNTEER CARD IN MATCHING
+    ============================================= */
+    .vol-card {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.025);
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .vol-card:hover {
+      background: rgba(20,220,180,0.04);
+      border-color: rgba(20,220,180,0.18);
+      transform: translateX(2px);
+    }
+    .vol-card.highlight {
+      border-color: rgba(20,220,180,0.3);
+      background: rgba(20,220,180,0.06);
+      box-shadow: 0 0 0 1px rgba(20,220,180,0.1), var(--glow-teal);
+    }
+    .vol-avatar {
+      width: 40px; height: 40px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 13px; font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    /* =============================================
+       IMPACT CARDS
+    ============================================= */
+    .impact-card {
+      border-radius: var(--radius-2xl);
+      overflow: hidden;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.22s ease, box-shadow 0.22s ease;
+    }
+    .impact-card:hover { transform: translateY(-4px); box-shadow: 0 20px 50px rgba(0,0,0,0.4); }
+    .impact-card .overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(0deg, rgba(5,12,26,0.92) 0%, rgba(5,12,26,0.3) 55%, transparent 100%);
+    }
+    [data-theme="light"] .impact-card .overlay {
+      background: linear-gradient(0deg, rgba(240,244,252,0.95) 0%, rgba(240,244,252,0.4) 55%, transparent 100%);
+    }
+
+    .impact-card-title {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+    [data-theme="light"] .impact-card-title {
+      color: var(--text-primary);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    /* =============================================
+       PARTNER NGO CARDS
+    ============================================= */
+    .partner-card {
+      border-radius: var(--radius-xl);
+      padding: 1.25rem;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .partner-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--border-glow);
+      box-shadow: var(--glow-teal);
+    }
+    .partner-logo-bg {
+      width: 52px; height: 52px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+      flex-shrink: 0;
+    }
+
+    /* =============================================
+       TOAST NOTIFICATIONS
+    ============================================= */
+    #toast-container {
+      position: fixed; top: 1.25rem; right: 1.25rem;
+      z-index: 9999; display: flex; flex-direction: column; gap: 10px;
+      pointer-events: none;
+    }
+    .toast {
+      pointer-events: all;
+      display: flex; align-items: flex-start; gap: 10px;
+      min-width: 290px; max-width: 360px;
+      padding: 13px 16px;
+      border-radius: 14px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      animation: toastIn 0.35s cubic-bezier(.4,0,.2,1) forwards;
+      font-size: 13px;
+    }
+    .toast-success { background: rgba(10,30,20,0.95); border: 1px solid rgba(20,220,180,0.3); }
+    .toast-error   { background: rgba(30,10,15,0.95); border: 1px solid rgba(244,63,94,0.3); }
+    .toast-info    { background: rgba(10,20,40,0.95); border: 1px solid rgba(59,130,246,0.3); }
+    .toast-warning { background: rgba(30,20,10,0.95); border: 1px solid rgba(240,168,69,0.3); }
+    [data-theme="light"] .toast-success { background: rgba(240,255,250,0.97); }
+    [data-theme="light"] .toast-error   { background: rgba(255,240,245,0.97); }
+    [data-theme="light"] .toast-info    { background: rgba(240,248,255,0.97); }
+    [data-theme="light"] .toast-warning { background: rgba(255,252,235,0.97); }
+    .toast-icon {
+      width: 28px; height: 28px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .toast-exit { animation: toastOut 0.3s ease forwards; }
+    @keyframes toastIn  { from { opacity:0; transform:translateX(24px) scale(0.96); } to { opacity:1; transform:translateX(0) scale(1); } }
+    @keyframes toastOut { from { opacity:1; transform:translateX(0) scale(1); }       to { opacity:0; transform:translateX(24px) scale(0.96); } }
+
+    /* =============================================
+       PAGE SECTIONS + TRANSITIONS
+    ============================================= */
+    .page-section { display: none; }
+    .page-section.active { display: block; animation: pageIn 0.35s ease; }
+    @keyframes pageIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+    /* =============================================
+       SKELETON LOADERS
+    ============================================= */
+    .skeleton {
+      border-radius: 8px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+      background-size: 400% 100%;
+      animation: skeletonShimmer 1.5s ease-in-out infinite;
+    }
+    [data-theme="light"] .skeleton {
+      background: linear-gradient(90deg, rgba(0,0,0,0.05) 25%, rgba(0,0,0,0.09) 50%, rgba(0,0,0,0.05) 75%);
+      background-size: 400% 100%;
+    }
+    @keyframes skeletonShimmer { 0% { background-position:100% 0; } 100% { background-position:-100% 0; } }
+
+    /* =============================================
+       AI LOADER ANIMATION
+    ============================================= */
+    .ai-thinking {
+      display: flex; align-items: center; gap: 5px;
+    }
+    .ai-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent-teal);
+      animation: aiDot 1.4s ease-in-out infinite;
+    }
+    .ai-dot:nth-child(2) { animation-delay: 0.2s; }
+    .ai-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes aiDot {
+      0%,80%,100% { transform: scale(0.6); opacity:0.3; }
+      40%          { transform: scale(1.2); opacity:1; }
+    }
+
+    /* =============================================
+       CHART CONTAINER
+    ============================================= */
+    .chart-wrap { position: relative; }
+    canvas { display: block; }
+
+    /* =============================================
+       HEADER SECTION LABELS
+    ============================================= */
+    .section-label {
+      font-size: 10.5px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--text-muted);
+    }
+    .section-title {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 1.35rem; font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.5px;
+    }
+
+    /* =============================================
+       STEP PROGRESS (ALLOCATION TRACKER)
+    ============================================= */
+    .step {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 0; position: relative;
+    }
+    .step-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all 0.3s ease;
+    }
+    .step-done   .step-icon { background: rgba(20,220,180,0.15); color: var(--accent-teal); }
+    .step-active .step-icon { background: rgba(240,168,69,0.15);  color: var(--accent-gold); box-shadow: 0 0 14px rgba(240,168,69,0.2); }
+    .step-pending .step-icon { background: rgba(255,255,255,0.04); color: var(--text-muted); }
+    .step-connector {
+      position: absolute; left: 17px; top: 46px;
+      width: 2px; height: 20px;
+      background: var(--border);
+      border-radius: 1px;
+    }
+    .step-done .step-connector { background: rgba(20,220,180,0.3); }
+
+    /* =============================================
+       DARK MODE TOGGLE
+    ============================================= */
+    .theme-toggle {
+      width: 44px; height: 24px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--border);
+      border-radius: 99px; position: relative;
+      cursor: pointer; transition: background 0.3s ease;
+      flex-shrink: 0;
+    }
+    .theme-toggle.light { background: rgba(13,148,136,0.25); border-color: rgba(13,148,136,0.4); }
+    .theme-thumb {
+      position: absolute; top: 3px; left: 3px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--text-muted);
+      transition: all 0.25s cubic-bezier(.4,0,.2,1);
+    }
+    .theme-toggle.light .theme-thumb { transform: translateX(20px); background: var(--accent-teal); }
+
+    /* =============================================
+       NOTIFICATION BELL BADGE
+    ============================================= */
+    .notif-badge {
+      position: absolute; top: -4px; right: -4px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--accent-rose);
+      color: #fff; font-size: 9px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid var(--bg-base);
+    }
+
+    /* =============================================
+       CHART LEGEND DOT
+    ============================================= */
+    .chart-legend-dot {
+      width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0;
+    }
+
+    /* =============================================
+       URGENCY SELECTOR
+    ============================================= */
+    .urgency-btn {
+      flex: 1; padding: 8px 4px; border-radius: 10px; border: 1px solid var(--border);
+      background: transparent; color: var(--text-muted);
+      font-size: 12px; font-weight: 700; cursor: pointer;
+      transition: all 0.15s ease; font-family: 'Instrument Sans', sans-serif;
+    }
+    .urgency-btn:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); }
+    .urgency-btn.active-low      { background: rgba(20,220,180,0.12); border-color: rgba(20,220,180,0.35); color: var(--accent-teal); }
+    .urgency-btn.active-medium   { background: rgba(59,130,246,0.12); border-color: rgba(59,130,246,0.35); color: var(--accent-blue); }
+    .urgency-btn.active-high     { background: rgba(240,168,69,0.12);  border-color: rgba(240,168,69,0.35);  color: var(--accent-gold); }
+    .urgency-btn.active-critical { background: rgba(244,63,94,0.12);  border-color: rgba(244,63,94,0.35);  color: var(--accent-rose); }
+
+    /* =============================================
+       TABS
+    ============================================= */
+    .tab-btn {
+      padding: 6px 14px; border-radius: 9px; border: none;
+      background: transparent; color: var(--text-muted);
+      font-size: 12.5px; font-weight: 600; cursor: pointer;
+      transition: all 0.15s ease; font-family: 'Instrument Sans', sans-serif;
+    }
+    .tab-btn.active { background: rgba(20,220,180,0.1); color: var(--accent-teal); }
+    .tab-btn:hover:not(.active) { color: var(--text-primary); }
+
+    /* =============================================
+       MISC UTILITIES
+    ============================================= */
+    .divider { height: 1px; background: var(--border); }
+    .text-teal   { color: var(--accent-teal); }
+    .text-gold   { color: var(--accent-gold); }
+    .text-violet { color: var(--accent-violet); }
+    .text-rose   { color: var(--accent-rose); }
+    .text-blue   { color: var(--accent-blue); }
+    .text-primary   { color: var(--text-primary); }
+    .text-secondary { color: var(--text-secondary); }
+    .text-muted     { color: var(--text-muted); }
+
+    /* =============================================
+       RESPONSIVE
+    ============================================= */
+    @media (max-width: 900px) {
+      .sidebar { width: 0; overflow: hidden; }
+      .main-content { margin-left: 0 !important; }
+    }
+
+    /* =============================================
+       MINI SPARKLINE
+    ============================================= */
+    .sparkline { display: flex; align-items: flex-end; gap: 2px; height: 28px; }
+    .spark-bar {
+      width: 4px; border-radius: 2px;
+      background: rgba(20,220,180,0.35);
+      transition: background 0.2s;
+    }
+    .spark-bar:last-child { background: var(--accent-teal); box-shadow: 0 0 6px rgba(20,220,180,0.5); }
+
+    /* =============================================
+       FADE-UP ANIMATION FOR STAGGER
+    ============================================= */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(14px);
+      animation: fadeUp 0.45s ease forwards;
+    }
+    @keyframes fadeUp { to { opacity:1; transform:translateY(0); } }
+
+    /* Map blob deco */
+    .blob-deco {
+      position: absolute; border-radius: 50%; filter: blur(50px); pointer-events: none; z-index: 0;
+    }
+  </style>
+</head>
+
+<body>
+<!-- BACKGROUND MESH -->
+<div class="bg-mesh"></div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<!-- ==============================================
+     SIDEBAR
+============================================== -->
+<nav class="sidebar">
+  <div class="sidebar-logo">L.</div>
+  <div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:4px">
+    <div class="nav-item active" onclick="switchPage('dashboard')" id="nav-dashboard">
+      <i data-lucide="layout-dashboard" style="width:19px;height:19px;"></i>
+      <span class="nav-tooltip">Dashboard</span>
+    </div>
+    <div class="nav-item" onclick="switchPage('volunteers')" id="nav-volunteers">
+      <i data-lucide="users" style="width:19px;height:19px;"></i>
+      <span class="nav-tooltip">Volunteers</span>
+    </div>
+    <div class="nav-item" onclick="switchPage('ngos')" id="nav-ngos">
+      <i data-lucide="building-2" style="width:19px;height:19px;"></i>
+      <span class="nav-tooltip">NGO Requests</span>
+    </div>
+    <div class="nav-item" onclick="switchPage('matching')" id="nav-matching">
+      <i data-lucide="sparkles" style="width:19px;height:19px;"></i>
+      <span class="nav-tooltip">AI Matching</span>
+    </div>
+    <div class="nav-item" onclick="switchPage('analytics')" id="nav-analytics">
+      <i data-lucide="bar-chart-3" style="width:19px;height:19px;"></i>
+      <span class="nav-tooltip">Analytics</span>
+    </div>
+    <div class="nav-item" onclick="switchPage('impact')" id="nav-impact">
+      <i data-lucide="heart" style="width:19px;height:19px;"></i>
+      <span class="nav-tooltip">Impact Stories</span>
+    </div>
+    <div class="nav-item" onclick="switchPage('partners')" id="nav-partners">
+      <i data-lucide="globe" style="width:19px;height:19px;"></i>
+      <span class="nav-tooltip">Partners</span>
+    </div>
+  </div>
+  <div style="padding-bottom:0.5rem">
+    <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#8b5cf6,#14dcb4);display:flex;align-items:center;justify-content:center;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:12px;color:#050c1a;cursor:pointer;">AK</div>
+  </div>
+</nav>
+
+<!-- ==============================================
+     MAIN CONTENT
+============================================== -->
+<div class="main-content" style="margin-left:var(--sidebar-w); min-height:100vh; position:relative; z-index:1;">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div style="position:relative;flex:1;max-width:300px;">
+      <i data-lucide="search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--text-muted);"></i>
+      <input type="text" id="global-search" placeholder="Search volunteers, NGOs, skills…" class="search-input" style="padding-left:2.2rem;" oninput="handleSearch(this.value)">
+    </div>
+    <div style="flex:1"></div>
+
+    <!-- Live indicator -->
+    <div style="display:flex;align-items:center;gap:7px;padding:5px 12px;border-radius:9px;border:1px solid rgba(20,220,180,0.2);background:rgba(20,220,180,0.06);">
+      <span class="pulse-dot"></span>
+      <span style="font-size:11.5px;font-weight:700;color:var(--accent-teal);">AI Engine Live</span>
+    </div>
+
+    <!-- Dark mode toggle -->
+    <div style="display:flex;align-items:center;gap:8px;">
+      <i data-lucide="sun" style="width:14px;height:14px;color:var(--text-muted);"></i>
+      <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()">
+        <div class="theme-thumb"></div>
+      </div>
+      <i data-lucide="moon" style="width:14px;height:14px;color:var(--text-muted);"></i>
+    </div>
+
+    <!-- Notification bell -->
+    <div style="position:relative;cursor:pointer;" onclick="showNotifPanel()">
+      <div class="btn btn-ghost" style="padding:0.5rem 0.6rem;"><i data-lucide="bell" style="width:16px;height:16px;"></i></div>
+      <div class="notif-badge" id="notif-count">3</div>
+    </div>
+
+    <!-- Export -->
+    <button class="btn btn-ghost" onclick="handleExport()">
+      <i data-lucide="download" style="width:14px;height:14px;"></i> Export
+    </button>
+    
+    <!-- Settings -->
+    <button class="btn btn-ghost" onclick="showSettingsPanel()">
+      <i data-lucide="settings" style="width:14px;height:14px;"></i> Settings
+    </button>
+
+    <!-- User avatar -->
+    <div style="display:flex;align-items:center;gap:9px;padding-left:10px;border-left:1px solid var(--border);">
+      <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#8b5cf6,#14dcb4);display:flex;align-items:center;justify-content:center;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:11px;color:#050c1a;">AK</div>
+      <div>
+        <div style="font-size:12.5px;font-weight:700;color:var(--text-primary);">Admin</div>
+        <div style="font-size:10px;color:var(--text-muted);">Super User</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE HEADER -->
+  <div style="padding:1.75rem 2rem 0;">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+      <div>
+        <div class="section-label" style="margin-bottom:4px;" id="page-label">OVERVIEW</div>
+        <h1 style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.9rem;font-weight:800;letter-spacing:-1px;color:var(--text-primary);line-height:1.1;" id="page-title">Smart Resource Allocation</h1>
+        <p style="font-size:13px;color:var(--text-secondary);margin-top:4px;">Real-time matching engine active &nbsp;•&nbsp; <span style="color:var(--accent-teal);">Apr 2026</span></p>
+      </div>
+      <div id="page-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <button class="btn btn-ghost" onclick="refreshData()"><i data-lucide="refresh-cw" style="width:13px;height:13px;"></i> Refresh</button>
+        <button class="btn btn-teal" onclick="switchPage('matching')"><i data-lucide="sparkles" style="width:13px;height:13px;"></i> Run AI Match</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================
+       CONTENT WRAPPER
+  ========================= -->
+  <div style="padding:1.5rem 2rem 3rem;">
+
+    <!-- ==================================================
+         PAGE: DASHBOARD
+    ================================================== -->
+    <div class="page-section active" id="page-dashboard">
+
+      <!-- STAT CARDS -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;margin-bottom:1.5rem;" id="stat-grid">
+
+        <!-- Volunteers -->
+        <div class="card card-glow fade-up" style="padding:1.25rem 1.5rem;animation-delay:0.05s;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;">
+            <div style="width:38px;height:38px;border-radius:10px;background:rgba(20,220,180,0.1);border:1px solid rgba(20,220,180,0.2);display:flex;align-items:center;justify-content:center;">
+              <i data-lucide="user-plus" style="width:17px;height:17px;color:var(--accent-teal);"></i>
+            </div>
+            <span class="badge badge-teal">+12%</span>
+          </div>
+          <div class="stat-number" id="stat-vol">0</div>
+          <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-top:4px;">Total Volunteers</div>
+          <div style="margin-top:10px;" class="sparkline" id="spark-vol">
+            <div class="spark-bar" style="height:40%"></div>
+            <div class="spark-bar" style="height:55%"></div>
+            <div class="spark-bar" style="height:45%"></div>
+            <div class="spark-bar" style="height:70%"></div>
+            <div class="spark-bar" style="height:60%"></div>
+            <div class="spark-bar" style="height:80%"></div>
+            <div class="spark-bar" style="height:100%"></div>
+          </div>
+        </div>
+
+        <!-- NGO Requests -->
+        <div class="card fade-up" style="padding:1.25rem 1.5rem;animation-delay:0.1s;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;">
+            <div style="width:38px;height:38px;border-radius:10px;background:rgba(240,168,69,0.1);border:1px solid rgba(240,168,69,0.2);display:flex;align-items:center;justify-content:center;">
+              <i data-lucide="file-text" style="width:17px;height:17px;color:var(--accent-gold);"></i>
+            </div>
+            <span class="badge badge-gold">+8 today</span>
+          </div>
+          <div class="stat-number" id="stat-req">0</div>
+          <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-top:4px;">NGO Requests</div>
+          <div style="margin-top:10px;display:flex;align-items:center;gap:6px;">
+            <div class="progress-track" style="flex:1;">
+              <div class="progress-fill progress-fill-gold" style="width:0%" id="req-bar"></div>
+            </div>
+            <span style="font-size:11px;color:var(--text-muted);">68%</span>
+          </div>
+        </div>
+
+        <!-- Matches -->
+        <div class="card fade-up" style="padding:1.25rem 1.5rem;animation-delay:0.15s;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;">
+            <div style="width:38px;height:38px;border-radius:10px;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.2);display:flex;align-items:center;justify-content:center;">
+              <i data-lucide="zap" style="width:17px;height:17px;color:var(--accent-violet);"></i>
+            </div>
+            <span class="badge badge-violet">94% rate</span>
+          </div>
+          <div class="stat-number" id="stat-match">0</div>
+          <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-top:4px;">Successful Matches</div>
+          <div style="margin-top:10px;display:flex;align-items:center;gap:6px;">
+            <div class="progress-track" style="flex:1;">
+              <div class="progress-fill progress-fill-violet" style="width:0%" id="match-bar"></div>
+            </div>
+            <span style="font-size:11px;color:var(--text-muted);">94%</span>
+          </div>
+        </div>
+
+        <!-- Active Areas -->
+        <div class="card fade-up" style="padding:1.25rem 1.5rem;animation-delay:0.2s;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;">
+            <div style="width:38px;height:38px;border-radius:10px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);display:flex;align-items:center;justify-content:center;">
+              <i data-lucide="map-pin" style="width:17px;height:17px;color:var(--accent-blue);"></i>
+            </div>
+            <span class="badge badge-blue">+5 new</span>
+          </div>
+          <div class="stat-number" id="stat-areas">0</div>
+          <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-top:4px;">Active Areas</div>
+          <div style="margin-top:10px;display:flex;gap:3px;flex-wrap:wrap;">
+            <span class="badge badge-blue" style="font-size:10px;">Delhi</span>
+            <span class="badge badge-blue" style="font-size:10px;">Mumbai</span>
+            <span class="badge badge-teal" style="font-size:10px;">+60</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN GRID -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 340px;gap:1.25rem;align-items:start;">
+
+        <!-- Volunteer Growth Chart -->
+        <div class="card fade-up" style="padding:1.5rem;animation-delay:0.25s;grid-column:span 2;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+            <div>
+              <div class="section-label">TREND</div>
+              <div class="section-title">Volunteer Growth</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-muted);">
+                <div class="chart-legend-dot" style="background:rgba(20,220,180,0.8);"></div> Volunteers
+              </div>
+              <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-muted);">
+                <div class="chart-legend-dot" style="background:rgba(139,92,246,0.8);"></div> Matched
+              </div>
+              <button class="btn btn-ghost" style="padding:4px 10px;font-size:11px;" onclick="refreshChart()">
+                <i data-lucide="refresh-cw" style="width:11px;height:11px;"></i>
+              </button>
+            </div>
+          </div>
+          <div class="chart-wrap" style="height:220px;"><canvas id="growthChart"></canvas></div>
+        </div>
+
+        <!-- Allocation Progress -->
+        <div class="card fade-up" style="padding:1.5rem;animation-delay:0.3s;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+            <div class="section-title" style="font-size:1rem;">Allocation Status</div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--accent-teal);background:rgba(20,220,180,0.08);padding:4px 9px;border-radius:7px;border:1px solid rgba(20,220,180,0.18);">
+              <span class="pulse-dot" style="width:5px;height:5px;"></span> Processing
+            </div>
+          </div>
+
+          <!-- Big progress ring simulation using bar -->
+          <div style="text-align:center;margin:1rem 0;">
+            <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:2.2rem;font-weight:800;color:var(--accent-teal);letter-spacing:-2px;" id="alloc-pct">78%</div>
+            <div style="font-size:11.5px;color:var(--text-muted);margin-top:2px;">Overall Complete</div>
+          </div>
+          <div class="progress-track" style="height:6px;margin-bottom:1.25rem;">
+            <div class="progress-fill" style="width:0%;" id="alloc-bar"></div>
+          </div>
+
+          <!-- Steps -->
+          <div id="steps-container">
+            <div class="step step-done">
+              <div class="step-icon"><i data-lucide="check-circle-2" style="width:16px;height:16px;"></i></div>
+              <div style="flex:1;">
+                <div style="font-size:12.5px;font-weight:600;color:var(--text-primary);">Request Submitted</div>
+                <div style="font-size:11px;color:var(--text-muted);">NGO-2024-084</div>
+              </div>
+              <span class="badge badge-teal" style="font-size:10px;">Done</span>
+              <div class="step-connector"></div>
+            </div>
+            <div class="step step-done">
+              <div class="step-icon"><i data-lucide="sparkles" style="width:16px;height:16px;"></i></div>
+              <div style="flex:1;"><div style="font-size:12.5px;font-weight:600;color:var(--text-primary);">AI Skill Matching</div><div style="font-size:11px;color:var(--text-muted);">6 candidates found</div></div>
+              <span class="badge badge-teal" style="font-size:10px;">Done</span>
+              <div class="step-connector"></div>
+            </div>
+            <div class="step step-done">
+              <div class="step-icon"><i data-lucide="bell" style="width:16px;height:16px;"></i></div>
+              <div style="flex:1;"><div style="font-size:12.5px;font-weight:600;color:var(--text-primary);">Volunteer Notified</div><div style="font-size:11px;color:var(--text-muted);">Priya Sharma, +2</div></div>
+              <span class="badge badge-teal" style="font-size:10px;">Done</span>
+              <div class="step-connector"></div>
+            </div>
+            <div class="step step-active">
+              <div class="step-icon"><i data-lucide="handshake" style="width:16px;height:16px;"></i></div>
+              <div style="flex:1;"><div style="font-size:12.5px;font-weight:600;color:var(--accent-gold);">Volunteer Accepted</div><div style="font-size:11px;color:var(--text-muted);">Awaiting 2 responses</div></div>
+              <span class="badge badge-gold" style="font-size:10px;">Active</span>
+              <div class="step-connector"></div>
+            </div>
+            <div class="step step-pending">
+              <div class="step-icon"><i data-lucide="map-pin" style="width:16px;height:16px;"></i></div>
+              <div style="flex:1;"><div style="font-size:12.5px;font-weight:600;color:var(--text-muted);">Deployment</div><div style="font-size:11px;color:var(--text-muted);">Scheduled: Apr 25</div></div>
+              <span class="badge badge-muted" style="font-size:10px;">Pending</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Donut Chart -->
+        <div class="card fade-up" style="padding:1.5rem;animation-delay:0.35s;">
+          <div style="margin-bottom:1.1rem;">
+            <div class="section-label">BREAKDOWN</div>
+            <div class="section-title">Request Distribution</div>
+          </div>
+          <div class="chart-wrap" style="height:180px;"><canvas id="donutChart"></canvas></div>
+          <div style="margin-top:1rem;display:flex;flex-direction:column;gap:8px;" id="donut-legend"></div>
+        </div>
+
+        <!-- Success Rate Chart -->
+        <div class="card fade-up" style="padding:1.5rem;animation-delay:0.4s;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem;">
+            <div>
+              <div class="section-label">ACCURACY</div>
+              <div class="section-title">Match Success Rate</div>
+            </div>
+            <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.8rem;font-weight:800;color:var(--accent-teal);letter-spacing:-1.5px;">96%</div>
+          </div>
+          <div class="chart-wrap" style="height:160px;"><canvas id="successChart"></canvas></div>
+        </div>
+
+        <!-- Queue Tasks -->
+        <div class="card fade-up" style="padding:1.5rem;animation-delay:0.45s;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+            <div class="section-title" style="font-size:1rem;">Queue Tasks</div>
+            <span class="badge badge-gold">3 pending</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;" id="task-list">
+            <!-- Tasks injected by JS -->
+          </div>
+          <button class="btn btn-ghost" style="width:100%;margin-top:1rem;justify-content:center;font-size:12px;" onclick="addTask()">
+            <i data-lucide="plus" style="width:13px;height:13px;"></i> Add Task
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================================================
+         PAGE: VOLUNTEERS
+    ================================================== -->
+    <div class="page-section" id="page-volunteers">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.5rem;">
+
+        <!-- VOLUNTEER FORM -->
+        <div class="card fade-up" style="padding:2rem;animation-delay:0.05s;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(20,220,180,0.07),transparent);pointer-events:none;"></div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.5rem;">
+            <div style="width:40px;height:40px;border-radius:12px;background:rgba(20,220,180,0.1);border:1px solid rgba(20,220,180,0.2);display:flex;align-items:center;justify-content:center;">
+              <i data-lucide="user-plus" style="width:18px;height:18px;color:var(--accent-teal);"></i>
+            </div>
+            <div>
+              <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.15rem;font-weight:700;color:var(--text-primary);">Register Volunteer</div>
+              <div style="font-size:12px;color:var(--text-muted);">Join the network, make an impact</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div>
+              <label style="font-size:11.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:6px;">Full Name</label>
+              <input type="text" id="vol-name" placeholder="e.g. Priya Sharma" class="form-input">
+            </div>
+            <div>
+              <label style="font-size:11.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:6px;">Phone Number</label>
+              <input type="tel" id="vol-phone" placeholder="e.g. 9876543210" class="form-input">
+            </div>
+            <div>
+              <label style="font-size:11.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:6px;">Location / City</label>
+              <input type="text" id="vol-location" placeholder="e.g. Delhi, Mumbai" class="form-input">
+            </div>
+            <div>
+              <label style="font-size:11.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:6px;">Skills</label>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;" id="vol-skills-tags">
+                <!-- Injected by JS -->
+              </div>
+            </div>
+            <div>
+              <label style="font-size:11.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:6px;">Availability</label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <select class="form-input form-select" id="vol-avail">
+                  <option value="">Select Days/Week</option>
+                  <option>1-2 days/week</option>
+                  <option>3-4 days/week</option>
+                  <option>5 days/week</option>
+                  <option>Full-time</option>
+                  <option>Weekends only</option>
+                </select>
+                <select class="form-input form-select" id="vol-mode">
+                  <option value="">Work Mode</option>
+                  <option>On-site</option>
+                  <option>Remote</option>
+                  <option>Hybrid</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-teal" id="vol-submit-btn" style="width:100%;justify-content:center;padding:.75rem;" onclick="submitVolunteer()">
+              <i data-lucide="user-check" style="width:15px;height:15px;"></i>
+              <span id="vol-btn-text">Submit Application</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- VOLUNTEER LIST WITH SEARCH/FILTER -->
+        <div class="card fade-up" style="padding:1.5rem;animation-delay:0.1s;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+            <div class="section-title" style="font-size:1rem;">Registered Volunteers</div>
+            <div style="display:flex;gap:6px;">
+              <button class="tab-btn active" onclick="filterVols('all',this)">All</button>
+              <button class="tab-btn" onclick="filterVols('available',this)">Available</button>
+              <button class="tab-btn" onclick="filterVols('matched',this)">Matched</button>
+            </div>
+          </div>
+          <!-- Search -->
+          <div style="position:relative;margin-bottom:10px;">
+            <i data-lucide="search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:13px;height:13px;color:var(--text-muted);"></i>
+            <input type="text" placeholder="Search by name, skill, location…" class="form-input" style="padding-left:2rem;" oninput="searchVols(this.value)">
+          </div>
+          <!-- List -->
+          <div style="display:flex;flex-direction:column;gap:7px;max-height:420px;overflow-y:auto;padding-right:2px;" id="vol-list">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================================================
+         PAGE: NGO REQUESTS
+    ================================================== -->
+    <div class="page-section" id="page-ngos">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.5rem;">
+
+        <!-- NGO REQUEST FORM -->
+        <div class="card fade-up" style="padding:2rem;animation-delay:0.05s;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,0.07),transparent);pointer-events:none;"></div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.5rem;">
+            <div style="width:40px;height:40px;border-radius:12px;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.2);display:flex;align-items:center;justify-content:center;">
+              <i data-lucide="building-2" style="width:18px;height:18px;color:var(--accent-violet);"></i>
+            </div>
+            <div>
+              <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.15rem;font-weight:700;color:var(--text-primary);">Submit NGO Request</div>
+              <div style="font-size:12px;color:var(--text-muted);">Find the right volunteers fast</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div>
+              <label style="font-size:11.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:6px;">Organization Name</label>
+              <input type="text" id="ngo-org" placeholder="e.g. Red Cross India" class="form-input form-input-violet">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div>
+                <label style="font-size:11.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:6px;">Location</label>
+                <input type="text" id="ngo-loc" placeholder="e.g. Delhi NCR" class="form-input form-input-violet">
+              </div>
+              <div>
+                <label style="font-size:11.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:6px;">Volunteers Needed</label>
+                <input type="number" id="ngo-count" placeholder="e.g. 10" class="form-input form-input-violet" min="1">
+              </div>
+            </div>
+            <div>
+              <label style="font-size:11.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:6px;">Required Skills</label>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;" id="ngo-skills-tags"></div>
+            </div>
+            <div>
+              <label style="font-size:11.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:6px;">Urgency Level</label>
+              <div style="display:flex;gap:6px;">
+                <button class="urgency-btn" onclick="selectUrgency('Low',this)">Low</button>
+                <button class="urgency-btn active-medium" onclick="selectUrgency('Medium',this)">Medium</button>
+                <button class="urgency-btn" onclick="selectUrgency('High',this)">High</button>
+                <button class="urgency-btn" onclick="selectUrgency('Critical',this)">Critical 🚨</button>
+              </div>
+              <input type="hidden" id="ngo-urgency" value="Medium">
+            </div>
+            <div>
+              <label style="font-size:11.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:6px;">Description</label>
+              <textarea id="ngo-desc" placeholder="Describe the project, timeline, and special requirements…" class="form-input" style="height:80px;resize:none;"></textarea>
+            </div>
+            <button class="btn btn-violet" id="ngo-submit-btn" style="width:100%;justify-content:center;padding:.75rem;" onclick="submitNGO()">
+              <i data-lucide="send" style="width:15px;height:15px;"></i>
+              <span id="ngo-btn-text">Post Request</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ACTIVE REQUESTS LIST -->
+        <div class="card fade-up" style="padding:1.5rem;animation-delay:0.1s;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+            <div class="section-title" style="font-size:1rem;">Active Requests</div>
+            <span class="badge badge-violet">6 open</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;max-height:480px;overflow-y:auto;" id="ngo-req-list">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================================================
+         PAGE: AI MATCHING
+    ================================================== -->
+    <div class="page-section" id="page-matching">
+      <div style="display:grid;grid-template-columns:1fr 360px;gap:1.25rem;">
+
+        <!-- MATCHING PANEL -->
+        <div class="card fade-up" style="padding:1.75rem;animation-delay:0.05s;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:42px;height:42px;border-radius:12px;background:rgba(20,220,180,0.1);border:1px solid rgba(20,220,180,0.2);display:flex;align-items:center;justify-content:center;position:relative;">
+                <i data-lucide="sparkles" style="width:19px;height:19px;color:var(--accent-teal);"></i>
+                <div id="ai-pulse" style="display:none;position:absolute;inset:-3px;border-radius:14px;border:1.5px solid rgba(20,220,180,0.4);animation:aiPulse 1.5s ease-in-out infinite;"></div>
+              </div>
+              <div>
+                <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text-primary);">Smart AI Matching</div>
+                <div style="font-size:12px;color:var(--text-muted);">Skill-based volunteer ↔ NGO pairing engine</div>
+              </div>
+            </div>
+            <button class="btn btn-teal" id="ai-match-btn" onclick="runAIMatch()">
+              <i data-lucide="zap" style="width:14px;height:14px;"></i>
+              <span id="ai-btn-text">Run AI Match</span>
+            </button>
+          </div>
+
+          <!-- AI Status bar -->
+          <div id="ai-status-bar" style="display:none;margin-bottom:1.25rem;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+              <div class="ai-thinking"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div>
+              <span style="font-size:12.5px;color:var(--accent-teal);font-weight:600;" id="ai-status-text">Analyzing skill vectors…</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="ai-progress-bar" style="width:0%;transition:width 0.4s ease;"></div></div>
+          </div>
+
+          <!-- Filters -->
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:1rem;flex-wrap:wrap;">
+            <button class="tab-btn active" onclick="filterMatch('all',this)">All <span style="background:rgba(255,255,255,0.06);padding:1px 6px;border-radius:4px;font-size:10px;" id="cnt-all">8</span></button>
+            <button class="tab-btn" onclick="filterMatch('available',this)">Available <span style="background:rgba(255,255,255,0.06);padding:1px 6px;border-radius:4px;font-size:10px;" id="cnt-avail">5</span></button>
+            <button class="tab-btn" onclick="filterMatch('matched',this)">Matched <span style="background:rgba(255,255,255,0.06);padding:1px 6px;border-radius:4px;font-size:10px;" id="cnt-matched">3</span></button>
+            <div style="position:relative;margin-left:auto;">
+              <i data-lucide="filter" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);width:12px;height:12px;color:var(--text-muted);"></i>
+              <input type="text" placeholder="Filter by skill…" class="form-input" style="padding-left:24px;height:32px;font-size:12px;width:150px;" oninput="skillFilter(this.value)">
+            </div>
+          </div>
+
+          <!-- Skeleton loaders when AI running -->
+          <div id="match-skeletons" style="display:none;flex-direction:column;gap:8px;margin-bottom:8px;">
+            <div class="skeleton" style="height:64px;border-radius:14px;"></div>
+            <div class="skeleton" style="height:64px;border-radius:14px;"></div>
+            <div class="skeleton" style="height:64px;border-radius:14px;"></div>
+          </div>
+
+          <!-- Volunteer match list -->
+          <div style="display:flex;flex-direction:column;gap:7px;max-height:460px;overflow-y:auto;" id="match-list">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+
+        <!-- RIGHT: Config + Stats -->
+        <div style="display:flex;flex-direction:column;gap:1.25rem;">
+
+          <!-- Match config -->
+          <div class="card fade-up" style="padding:1.4rem;animation-delay:0.1s;">
+            <div class="section-title" style="font-size:.95rem;margin-bottom:1rem;">Match Configuration</div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:12.5px;color:var(--text-secondary);">Skill weight</span>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <div class="progress-track" style="width:80px;"><div class="progress-fill" style="width:70%;"></div></div>
+                  <span style="font-size:11.5px;color:var(--accent-teal);">70%</span>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:12.5px;color:var(--text-secondary);">Location proximity</span>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <div class="progress-track" style="width:80px;"><div class="progress-fill progress-fill-violet" style="width:50%;"></div></div>
+                  <span style="font-size:11.5px;color:var(--accent-violet);">50km</span>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:12.5px;color:var(--text-secondary);">Availability match</span>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <div class="progress-track" style="width:80px;"><div class="progress-fill progress-fill-gold" style="width:80%;"></div></div>
+                  <span style="font-size:11.5px;color:var(--accent-gold);">80%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick stats -->
+          <div class="card fade-up" style="padding:1.4rem;animation-delay:0.15s;">
+            <div class="section-title" style="font-size:.95rem;margin-bottom:1rem;">Session Stats</div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;justify-content:space-between;padding:8px 10px;border-radius:10px;background:rgba(20,220,180,0.05);border:1px solid rgba(20,220,180,0.12);">
+                <span style="font-size:12px;color:var(--text-muted);">Matches today</span>
+                <span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;color:var(--accent-teal);" id="matches-today">14</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:8px 10px;border-radius:10px;background:rgba(139,92,246,0.05);border:1px solid rgba(139,92,246,0.12);">
+                <span style="font-size:12px;color:var(--text-muted);">Pending approval</span>
+                <span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;color:var(--accent-violet);">6</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:8px 10px;border-radius:10px;background:rgba(240,168,69,0.05);border:1px solid rgba(240,168,69,0.12);">
+                <span style="font-size:12px;color:var(--text-muted);">Avg match score</span>
+                <span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;color:var(--accent-gold);">87.4%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Latest matched -->
+          <div class="card fade-up" style="padding:1.4rem;animation-delay:0.2s;">
+            <div class="section-title" style="font-size:.95rem;margin-bottom:.9rem;">Latest Match</div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;border:1px solid rgba(20,220,180,0.2);background:rgba(20,220,180,0.05);">
+              <div class="vol-avatar" style="background:linear-gradient(135deg,#14dcb4,#0ea5e9);color:#050c1a;">PS</div>
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:700;color:var(--text-primary);">Priya Sharma</div>
+                <div style="font-size:11.5px;color:var(--text-muted);">→ Teach For India</div>
+              </div>
+              <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:1.1rem;color:var(--accent-teal);">96%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================================================
+         PAGE: ANALYTICS
+    ================================================== -->
+    <div class="page-section" id="page-analytics">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem;">
+        <div class="card fade-up" style="padding:1.5rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem;">
+            <div><div class="section-label">TREND</div><div class="section-title">Volunteer Growth</div></div>
+          </div>
+          <div class="chart-wrap" style="height:220px;"><canvas id="analyticsGrowth"></canvas></div>
+        </div>
+        <div class="card fade-up" style="padding:1.5rem;animation-delay:.07s;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem;">
+            <div><div class="section-label">WEEKLY</div><div class="section-title">Match Success Rate</div></div>
+            <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.6rem;font-weight:800;color:var(--accent-teal);">96%</div>
+          </div>
+          <div class="chart-wrap" style="height:220px;"><canvas id="analyticsSuccess"></canvas></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:360px 1fr;gap:1.25rem;">
+        <div class="card fade-up" style="padding:1.5rem;animation-delay:.1s;">
+          <div style="margin-bottom:1rem;"><div class="section-label">BY SECTOR</div><div class="section-title">Request Distribution</div></div>
+          <div class="chart-wrap" style="height:200px;"><canvas id="analyticsDonut"></canvas></div>
+          <div style="margin-top:1rem;display:flex;flex-direction:column;gap:7px;" id="analytics-donut-legend"></div>
+        </div>
+        <div class="card fade-up" style="padding:1.5rem;animation-delay:.12s;">
+          <div style="margin-bottom:1rem;"><div class="section-label">REGIONS</div><div class="section-title">Geographic Distribution</div></div>
+          <div class="chart-wrap" style="height:200px;"><canvas id="regionBar"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================================================
+         PAGE: IMPACT STORIES
+    ================================================== -->
+    <div class="page-section" id="page-impact">
+      <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:1.25rem;margin-bottom:1.25rem;" id="impact-cards-grid">
+        <!-- Injected by JS -->
+      </div>
+      <!-- Big impact stat row -->
+      <div class="card fade-up" style="padding:2rem;" id="impact-stat-row">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;text-align:center;">
+          <div>
+            <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:2.5rem;font-weight:800;color:var(--accent-teal);">15,400+</div>
+            <div style="font-size:12.5px;color:var(--text-muted);margin-top:4px;">People Helped</div>
+          </div>
+          <div>
+            <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:2.5rem;font-weight:800;color:var(--accent-gold);">₹ 2.1Cr</div>
+            <div style="font-size:12.5px;color:var(--text-muted);margin-top:4px;">Aid Distributed</div>
+          </div>
+          <div>
+            <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:2.5rem;font-weight:800;color:var(--accent-violet);">62</div>
+            <div style="font-size:12.5px;color:var(--text-muted);margin-top:4px;">Districts Covered</div>
+          </div>
+          <div>
+            <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:2.5rem;font-weight:800;color:var(--accent-rose);">98%</div>
+            <div style="font-size:12.5px;color:var(--text-muted);margin-top:4px;">Volunteer Satisfaction</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================================================
+         PAGE: PARTNERS
+    ================================================== -->
+    <div class="page-section" id="page-partners">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;" id="partners-grid">
+        <!-- Injected by JS -->
+      </div>
+    </div>
+
+  </div><!-- /content wrapper -->
+</div><!-- /main content -->
+
+<!-- =====================================================================
+     JAVASCRIPT
+===================================================================== -->
+<style>
+  @keyframes aiPulse { 0%,100%{opacity:.5;transform:scale(1);} 50%{opacity:1;transform:scale(1.06);} }
+</style>
+<script>
+// =====================================================================
+// API CONFIG
+// =====================================================================
+const API_BASE = 'http://localhost:8080'; // simple_ml/main.py Flask server
+
+async function apiPost(path, body) {
+  const res = await fetch(API_BASE + path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error(`API ${path} failed: ${res.status}`);
+  return res.json();
+}
+
+async function apiGet(path) {
+  const res = await fetch(API_BASE + path);
+  if (!res.ok) throw new Error(`API ${path} failed: ${res.status}`);
+  return res.json();
+}
+
+// =====================================================================
+// DATA
+// =====================================================================
+const SKILLS = ["Teaching", "Construction", "Medical", "Rescue"];
+
+let VOLUNTEERS = [
+  { id:1, name:"Priya Sharma",   initials:"PS", avatar:"teal",   skills:["Teaching","Hindi","Math"],          location:"Delhi",      score:96, status:"available", joined:"Jan 2024" },
+  { id:2, name:"Rahul Verma",    initials:"RV", avatar:"gold",   skills:["First Aid","Logistics","Leadership"],location:"Mumbai",     score:91, status:"matched",   joined:"Feb 2024" },
+  { id:3, name:"Ananya Singh",   initials:"AS", avatar:"violet", skills:["Coding","Design","Research"],        location:"Bangalore",  score:87, status:"available", joined:"Jan 2024" },
+  { id:4, name:"Kiran Patel",    initials:"KP", avatar:"blue",   skills:["Construction","Carpentry"],          location:"Ahmedabad",  score:82, status:"available", joined:"Mar 2024" },
+  { id:5, name:"Meera Nair",     initials:"MN", avatar:"rose",   skills:["Counseling","Mental Health"],        location:"Chennai",    score:77, status:"matched",   joined:"Feb 2024" },
+  { id:6, name:"Arjun Das",      initials:"AD", avatar:"teal",   skills:["Agriculture","Environment"],         location:"Kolkata",    score:73, status:"available", joined:"Mar 2024" },
+  { id:7, name:"Sana Khan",      initials:"SK", avatar:"gold",   skills:["Teaching","English","Art"],          location:"Hyderabad",  score:88, status:"available", joined:"Jan 2024" },
+  { id:8, name:"Dev Mishra",     initials:"DM", avatar:"violet", skills:["Medical","First Aid","Nutrition"],   location:"Lucknow",    score:79, status:"matched",   joined:"Apr 2024" },
+];
+
+let NGO_REQUESTS = [
+  { org:"Teach For India", skills:["Teaching","English"],    location:"Delhi",     urgency:"High",     vols:8,  desc:"Literacy program in Yamuna Puri" },
+  { org:"Red Cross India", skills:["Medical","First Aid"],   location:"Mumbai",    urgency:"Critical", vols:15, desc:"Disaster relief post flooding" },
+  { org:"CRY India",       skills:["Counseling","Research"], location:"Chennai",   urgency:"Medium",   vols:5,  desc:"Child welfare research initiative" },
+  { org:"Greenpeace",      skills:["Environment","Research"],location:"Bangalore", urgency:"Low",      vols:4,  desc:"Environmental impact study" },
+  { org:"UNICEF India",    skills:["Medical","Nutrition"],   location:"Lucknow",   urgency:"High",     vols:12, desc:"Child nutrition campaign" },
+  { org:"Habitat for Humanity India",         skills:["Construction","Logistics"],location:"Jaipur",  urgency:"Medium",   vols:20, desc:"Housing construction drive" },
+];
+
+let ASSIGNMENTS = [];
+
+async function loadInitialData() {
+  try {
+    const vRes = await apiGet('/api/volunteers');
+    if (vRes.status === 'success' && vRes.volunteers) {
+      VOLUNTEERS = vRes.volunteers.map(v => ({ ...v, initials: initials(v.name) }));
+    }
+    const rRes = await apiGet('/api/requests');
+    if (rRes.status === 'success' && rRes.requests) {
+      NGO_REQUESTS = rRes.requests;
+    }
+    const aRes = await apiGet('/api/assignments');
+    if (aRes.status === 'success' && aRes.assignments) {
+      ASSIGNMENTS = aRes.assignments;
+    }
+  } catch (e) {
+    console.warn("Could not load backend data, using fallback lists.", e);
+  }
+}
+
+const PARTNERS = [
+  { name:"Habitat for Humanity India", focus:"Housing & Shelter",    emoji:"🏠", vols:450,  projects:38, color:"rgba(14,165,133,0.1)",  border:"rgba(14,165,133,0.2)"  },
+  { name:"Red Cross India",            focus:"Disaster Relief",      emoji:"🏥", vols:820,  projects:64, color:"rgba(239,68,68,0.1)",   border:"rgba(239,68,68,0.2)"   },
+  { name:"CRY India",                  focus:"Child Rights",          emoji:"👶", vols:310,  projects:29, color:"rgba(245,158,11,0.1)",  border:"rgba(245,158,11,0.2)"  },
+  { name:"Teach For India",            focus:"Education",             emoji:"📚", vols:680,  projects:52, color:"rgba(99,102,241,0.1)",  border:"rgba(99,102,241,0.2)"  },
+  { name:"Greenpeace India",           focus:"Environment",           emoji:"🌿", vols:290,  projects:21, color:"rgba(34,197,94,0.1)",   border:"rgba(34,197,94,0.2)"   },
+  { name:"UNICEF India",               focus:"Children & Health",     emoji:"🌍", vols:1200, projects:87, color:"rgba(59,130,246,0.1)",  border:"rgba(59,130,246,0.2)"  },
+  { name:"CARE India",                 focus:"Women & Girls",         emoji:"💜", vols:380,  projects:31, color:"rgba(168,85,247,0.1)",  border:"rgba(168,85,247,0.2)"  },
+  { name:"WWF India",                  focus:"Wildlife Conservation", emoji:"🐾", vols:210,  projects:18, color:"rgba(74,222,128,0.1)",  border:"rgba(74,222,128,0.2)"  },
+  { name:"Goonj",                      focus:"Resource Distribution", emoji:"📦", vols:560,  projects:45, color:"rgba(251,146,60,0.1)",  border:"rgba(251,146,60,0.2)"  },
+];
+
+const IMPACT_STORIES = [
+  { title: "500 Meals Distributed", location: "Mumbai Slums", vols: 25, stat: "1 day", tag: "Food Relief", img: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=2070&auto=format&fit=crop" },
+  { title: "1,200 Students Mentored", location: "Jharkhand Schools", vols: 34, stat: "12 weeks", tag: "Mentorship", img: "https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?q=80&w=2070&auto=format&fit=crop" },
+  { title: "Animal Shelter Support", location: "Pune", vols: 15, stat: "Ongoing", tag: "Animals", img: "https://images.unsplash.com/photo-1548767797-d8c844163c4c?q=80&w=2071&auto=format&fit=crop" },
+  { title: "Elderly Companion Care", location: "Kolkata", vols: 22, stat: "4 months", tag: "Elderly", img: "https://images.unsplash.com/photo-1581579438747-1dc8d17bbce4?q=80&w=2070&auto=format&fit=crop" },
+  { title: "Community Sports Day", location: "Goa", vols: 30, stat: "1 day", tag: "Community", img: "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2070&auto=format&fit=crop" },
+  { title: "Digital Literacy for Seniors", location: "Pune", vols: 18, stat: "3 months", tag: "Digital", img: "https://images.unsplash.com/photo-1516321497487-e288fb19713f?q=80&w=2070&auto=format&fit=crop" },
+  // --- ADDED STORIES ---
+  { title: "Mobile Clinic Launch", location: "Ladakh", vols: 5, stat: "Ongoing", tag: "Health", img: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=2070&auto=format&fit=crop" },
+  { title: "Youth Skill Center", location: "Nagpur", vols: 14, stat: "4 months", tag: "Skills", img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2070&auto=format&fit=crop" },
+  { title: "Solar Power Drive", location: "Gujarat Villages", vols: 20, stat: "2 weeks", tag: "Energy", img: "https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=2070&auto=format&fit=crop" },
+  { title: "Organic Farming Workshop", location: "Sikkim", vols: 12, stat: "Ongoing", tag: "Agri", img: "https://images.unsplash.com/photo-1500651230702-0e2d8a49d4ad?q=80&w=2070&auto=format&fit=crop" },
+  { title: "Street Child Rescue", location: "Delhi Metro", vols: 50, stat: "Ongoing", tag: "Social", img: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=2070&auto=format&fit=crop" }
+];
+
+const TASKS = [
+  { text:"Verify new volunteers",  done:true },
+  { text:"Approve NGO requests",   done:false },
+  { text:"Map skill sets",         done:false },
+  { text:"Send deployment notices",done:false },
+  { text:"Review match quality",   done:true },
+];
+
+const growthData = {
+  labels:["Jan","Feb","Mar","Apr","May","Jun","Jul"],
+  vols:   [120,195,260,340,430,540,680],
+  matched:[80,140,210,285,368,470,598],
+};
+
+const donutData = [
+  { label:"Education",    value:35, color:"rgba(20,220,180,0.85)"  },
+  { label:"Healthcare",   value:25, color:"rgba(99,102,241,0.85)"  },
+  { label:"Disaster",     value:20, color:"rgba(245,158,11,0.85)"  },
+  { label:"Environment",  value:12, color:"rgba(59,130,246,0.85)"  },
+  { label:"Other",        value:8,  color:"rgba(244,63,94,0.75)"   },
+];
+
+const successData = {
+  labels:["W1","W2","W3","W4","W5","W6","W7","W8"],
+  rates: [71,76,80,84,87,91,94,96],
+};
+
+const regionData = {
+  labels:["Delhi","Mumbai","Bangalore","Chennai","Kolkata","Hyderabad","Lucknow","Jaipur"],
+  values:[18,15,12,10,9,8,7,6],
+};
+
+// =====================================================================
+// THEME
+// =====================================================================
+let isDark = true;
+function toggleTheme() {
+  isDark = !isDark;
+  document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
+  const toggle = document.getElementById("theme-toggle");
+  toggle.classList.toggle("light", !isDark);
+  updateChartsTheme();
+  showToast(isDark ? "Dark mode activated" : "Light mode activated", "info");
+}
+
+function getChartDefaults() {
+  return {
+    gridColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.07)",
+    tickColor: isDark ? "#3d5278" : "#94a3b8",
+    textColor: isDark ? "#7a90b0" : "#64748b",
+    bgTooltip: isDark ? "#0d1b2e" : "#fff",
+    borderTooltip: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+  };
+}
+
+// =====================================================================
+// CHART INSTANCES
+// =====================================================================
+let charts = {};
+
+function buildChartTooltip(context, cd) {
+  return {
+    backgroundColor: cd.bgTooltip,
+    borderColor: cd.borderTooltip,
+    borderWidth: 1,
+    titleColor: cd.textColor,
+    bodyColor: isDark ? "#f0f6ff" : "#0d1b2e",
+    padding: 10,
+    cornerRadius: 10,
+    displayColors: true,
+    boxWidth: 8, boxHeight: 8,
+  };
+}
+
+function initGrowthChart(canvasId) {
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return;
+  if (charts[canvasId]) { charts[canvasId].destroy(); }
+  const cd = getChartDefaults();
+  charts[canvasId] = new Chart(ctx, {
+    type:'line',
+    data: {
+      labels: growthData.labels,
+      datasets: [
+        {
+          label:'Volunteers',
+          data: growthData.vols,
+          borderColor:'rgba(20,220,180,0.9)', backgroundColor:'rgba(20,220,180,0.08)',
+          borderWidth:2.5, pointRadius:4, pointBackgroundColor:'rgba(20,220,180,1)',
+          tension:0.45, fill:true,
+        },
+        {
+          label:'Matched',
+          data: growthData.matched,
+          borderColor:'rgba(139,92,246,0.9)', backgroundColor:'rgba(139,92,246,0.07)',
+          borderWidth:2.5, pointRadius:4, pointBackgroundColor:'rgba(139,92,246,1)',
+          tension:0.45, fill:true,
+        }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{ legend:{display:false}, tooltip: buildChartTooltip(null, cd) },
+      scales:{
+        x:{ grid:{color:cd.gridColor, drawBorder:false}, ticks:{color:cd.tickColor, font:{size:11}} },
+        y:{ grid:{color:cd.gridColor, drawBorder:false}, ticks:{color:cd.tickColor, font:{size:11}} },
+      }
+    }
+  });
+}
+
+function initDonutChart(canvasId, legendId) {
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return;
+  if (charts[canvasId]) { charts[canvasId].destroy(); }
+  const cd = getChartDefaults();
+  charts[canvasId] = new Chart(ctx, {
+    type:'doughnut',
+    data:{
+      labels: donutData.map(d=>d.label),
+      datasets:[{
+        data: donutData.map(d=>d.value),
+        backgroundColor: donutData.map(d=>d.color),
+        borderWidth:0, spacing:3, borderRadius:4,
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'66%',
+      plugins:{ legend:{display:false}, tooltip: buildChartTooltip(null, cd) }
+    }
+  });
+  // Legend
+  if (legendId) {
+    const el = document.getElementById(legendId);
+    if (el) {
+      el.innerHTML = donutData.map(d=>`
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:7px;">
+            <div style="width:9px;height:9px;border-radius:3px;background:${d.color};"></div>
+            <span style="font-size:12px;color:var(--text-secondary);">${d.label}</span>
+          </div>
+          <span style="font-size:12px;font-weight:700;color:var(--text-primary);">${d.value}%</span>
+        </div>
+      `).join('');
+    }
+  }
+}
+
+function initSuccessChart(canvasId) {
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return;
+  if (charts[canvasId]) { charts[canvasId].destroy(); }
+  const cd = getChartDefaults();
+  charts[canvasId] = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: successData.labels,
+      datasets:[{
+        label:'Success Rate %',
+        data: successData.rates,
+        backgroundColor: successData.rates.map((v,i)=>
+          i===successData.rates.length-1 ? 'rgba(20,220,180,0.85)' : 'rgba(20,220,180,0.3)'
+        ),
+        borderRadius:6, borderSkipped:false,
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip: buildChartTooltip(null, cd) },
+      scales:{
+        x:{ grid:{display:false}, ticks:{color:cd.tickColor, font:{size:11}} },
+        y:{ min:60, max:100, grid:{color:cd.gridColor, drawBorder:false}, ticks:{color:cd.tickColor, font:{size:11}, callback:v=>v+'%'} }
+      }
+    }
+  });
+}
+
+function initRegionChart() {
+  const ctx = document.getElementById('regionBar');
+  if (!ctx) return;
+  if (charts['regionBar']) { charts['regionBar'].destroy(); }
+  const cd = getChartDefaults();
+  charts['regionBar'] = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: regionData.labels,
+      datasets:[{
+        label:'Active Volunteers',
+        data: regionData.values,
+        backgroundColor:'rgba(59,130,246,0.6)',
+        borderRadius:6, borderSkipped:false,
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, indexAxis:'y',
+      plugins:{ legend:{display:false}, tooltip: buildChartTooltip(null, cd) },
+      scales:{
+        x:{ grid:{color:cd.gridColor, drawBorder:false}, ticks:{color:cd.tickColor, font:{size:11}} },
+        y:{ grid:{display:false}, ticks:{color:cd.tickColor, font:{size:11}} }
+      }
+    }
+  });
+}
+
+function updateChartsTheme() {
+  Object.values(charts).forEach(c=>c.destroy());
+  charts = {};
+  const active = document.querySelector('.page-section.active');
+  if (!active) return;
+  initPageCharts(active.id.replace('page-',''));
+}
+
+function refreshChart() {
+  const id = document.querySelector('.page-section.active').id.replace('page-','');
+  initPageCharts(id);
+  showToast("Charts refreshed!", "success");
+}
+
+function initPageCharts(page) {
+  if (page==='dashboard') {
+    initGrowthChart('growthChart');
+    initDonutChart('donutChart','donut-legend');
+    initSuccessChart('successChart');
+  } else if (page==='analytics') {
+    initGrowthChart('analyticsGrowth');
+    initSuccessChart('analyticsSuccess');
+    initDonutChart('analyticsDonut','analytics-donut-legend');
+    initRegionChart();
+  }
+}
+
+// =====================================================================
+// COUNTER ANIMATION
+// =====================================================================
+function animateCounter(id, target, duration=1200) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const start = performance.now();
+  function update(now) {
+    const progress = Math.min((now-start)/duration, 1);
+    const ease = 1 - Math.pow(1-progress, 3);
+    el.textContent = Math.round(target * ease).toLocaleString();
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+function animateProgressBar(id, target, delay=400) {
+  setTimeout(()=>{
+    const el = document.getElementById(id);
+    if (el) el.style.width = target+'%';
+  }, delay);
+}
+
+// =====================================================================
+// PAGE NAVIGATION
+// =====================================================================
+const PAGE_META = {
+  dashboard: { label:"OVERVIEW",   title:"Smart Resource Allocation" },
+  volunteers:{ label:"PEOPLE",     title:"Volunteer Management"      },
+  ngos:      { label:"REQUESTS",   title:"NGO Request Board"         },
+  matching:  { label:"AI ENGINE",  title:"Smart Matching System"     },
+  analytics: { label:"INSIGHTS",   title:"Platform Analytics"        },
+  impact:    { label:"STORIES",    title:"Impact Stories"            },
+  partners:  { label:"ECOSYSTEM",  title:"Partner NGOs"              },
+};
+
+let currentPage = 'dashboard';
+
+function switchPage(page) {
+  if (currentPage===page) return;
+
+  document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  const navEl = document.getElementById('nav-'+page);
+  if (navEl) navEl.classList.add('active');
+  currentPage = page;
+
+  const meta = PAGE_META[page] || {};
+  document.getElementById('page-label').textContent = meta.label || '';
+  document.getElementById('page-title').textContent = meta.title  || '';
+
+  lucide.createIcons();
+  setTimeout(()=>initPageCharts(page), 100);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// =====================================================================
+// SKILL TAGS
+// =====================================================================
+function buildSkillTags(containerId, selectedClass='selected') {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = SKILLS.map(s=>`
+    <span class="skill-tag" onclick="toggleSkillTag(this,'${selectedClass}')">${s}</span>
+  `).join('');
+}
+
+function toggleSkillTag(el, cls='selected') {
+  el.classList.toggle(cls);
+}
+
+function getSelectedSkills(containerId) {
+  return [...document.querySelectorAll(`#${containerId} .selected, #${containerId} .selected-violet`)].map(el=>el.textContent.trim());
+}
+
+// =====================================================================
+// VOLUNTEER FORM SUBMIT
+// =====================================================================
+async function submitVolunteer() {
+  const name     = document.getElementById('vol-name').value.trim();
+  const phone    = document.getElementById('vol-phone').value.trim();
+  const location = document.getElementById('vol-location').value.trim();
+  const skills   = getSelectedSkills('vol-skills-tags');
+  const avail    = document.getElementById('vol-avail').value;
+  const mode     = document.getElementById('vol-mode').value;
+
+  if (!name)     { showToast("Please enter your full name.", "error"); return; }
+  if (!phone)    { showToast("Please enter your phone number.", "error"); return; }
+  if (!location) { showToast("Please enter your city.", "error"); return; }
+  if (!skills.length) { showToast("Select at least one skill.", "error"); return; }
+
+  const btn  = document.getElementById('vol-submit-btn');
+  const text = document.getElementById('vol-btn-text');
+  btn.disabled = true;
+  text.innerHTML = '<span style="display:inline-flex;gap:4px;"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></span> Registering…';
+
+  try {
+    await apiPost('/api/add_volunteer', {
+      name,
+      skills,
+      city: location,
+      available: avail.toLowerCase().includes('full') || avail.includes('5 days') ? true : true
+    });
+
+    // Also update local UI array so list shows immediately
+    VOLUNTEERS.unshift({ id: VOLUNTEERS.length+1, name, phone, initials: initials(name), avatar:'teal', skills, location, score: Math.floor(75+Math.random()*20), status:'available', joined:'Apr 2026' });
+    document.getElementById('vol-name').value = '';
+    document.getElementById('vol-phone').value = '';
+    document.getElementById('vol-location').value = '';
+    document.querySelectorAll('#vol-skills-tags .skill-tag').forEach(t=>t.classList.remove('selected'));
+    renderVolList('all');
+    animateCounter('stat-vol', VOLUNTEERS.length);
+    showToast(`✅ ${name} registered successfully! Saved to database.`, "success");
+  } catch(e) {
+    showToast(`⚠️ API error: ${e.message}. Saved locally only.`, "warning");
+    VOLUNTEERS.unshift({ id: VOLUNTEERS.length+1, name, phone, initials: initials(name), avatar:'teal', skills, location, score: Math.floor(75+Math.random()*20), status:'available', joined:'Apr 2026' });
+    renderVolList('all');
+  }
+
+  btn.disabled = false;
+  text.textContent = 'Submit Application';
+}
+
+// =====================================================================
+// NGO FORM SUBMIT
+// =====================================================================
+let selectedUrgency = 'Medium';
+function selectUrgency(u, el) {
+  selectedUrgency = u;
+  document.getElementById('ngo-urgency').value = u;
+  document.querySelectorAll('.urgency-btn').forEach(b=>b.className='urgency-btn');
+  el.classList.add('active-'+u.toLowerCase());
+}
+
+async function submitNGO() {
+  const org  = document.getElementById('ngo-org').value.trim();
+  const loc  = document.getElementById('ngo-loc').value.trim();
+  const cnt  = document.getElementById('ngo-count').value;
+  const skills = getSelectedSkills('ngo-skills-tags');
+  const desc = document.getElementById('ngo-desc').value.trim();
+
+  if (!org)    { showToast("Please enter organization name.", "error"); return; }
+  if (!loc)    { showToast("Please enter location.", "error"); return; }
+  if (!skills.length) { showToast("Select at least one required skill.", "error"); return; }
+
+  const btn  = document.getElementById('ngo-submit-btn');
+  const text = document.getElementById('ngo-btn-text');
+  btn.disabled = true;
+  text.innerHTML = '<span style="display:inline-flex;gap:4px;"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></span> Submitting…';
+
+  // Map urgency label to integer (1-5) for the API
+  const urgencyMap = { 'Low':2, 'Medium':3, 'High':4, 'Critical':5 };
+
+  try {
+    const result = await apiPost('/api/add_request', {
+      title: `${org} — ${skills.join(', ')}`,
+      required_skills: skills,
+      city: loc,
+      urgency: urgencyMap[selectedUrgency] || 3
+    });
+
+    NGO_REQUESTS.unshift({ org, skills, location:loc, urgency:selectedUrgency, vols:parseInt(cnt)||5, desc });
+    document.getElementById('ngo-org').value = '';
+    document.getElementById('ngo-loc').value = '';
+    document.getElementById('ngo-count').value = '';
+    document.getElementById('ngo-desc').value = '';
+    document.querySelectorAll('#ngo-skills-tags .skill-tag').forEach(t=>t.classList.remove('selected','selected-violet'));
+    renderNGOList();
+    animateCounter('stat-req', NGO_REQUESTS.length);
+    showToast(`📋 Request from ${org} posted! Saved to database (ID: ${result.request_id}). AI matching will start shortly.`, "success");
+  } catch(e) {
+    showToast(`⚠️ API error: ${e.message}. Saved locally only.`, "warning");
+    NGO_REQUESTS.unshift({ org, skills, location:loc, urgency:selectedUrgency, vols:parseInt(cnt)||5, desc });
+    renderNGOList();
+  }
+
+  btn.disabled = false;
+  text.textContent = 'Post Request';
+}
+
+// =====================================================================
+// RENDER VOLUNTEER LIST
+// =====================================================================
+const avatarGrads = {
+  teal:  'linear-gradient(135deg,#14dcb4,#0ea5e9)',
+  gold:  'linear-gradient(135deg,#f0a845,#f59e0b)',
+  violet:'linear-gradient(135deg,#8b5cf6,#6d28d9)',
+  blue:  'linear-gradient(135deg,#3b82f6,#1d4ed8)',
+  rose:  'linear-gradient(135deg,#f43f5e,#e11d48)',
+};
+const scoreColors = {
+  high:  {text:'var(--accent-teal)',   bg:'rgba(20,220,180,0.1)',  bar:'progress-fill'},
+  mid:   {text:'var(--accent-gold)',   bg:'rgba(240,168,69,0.1)',  bar:'progress-fill progress-fill-gold'},
+  low:   {text:'var(--accent-rose)',   bg:'rgba(244,63,94,0.1)',   bar:'progress-fill progress-fill-rose'},
+};
+
+function getScoreStyle(s) {
+  return s>=85 ? scoreColors.high : s>=70 ? scoreColors.mid : scoreColors.low;
+}
+
+function renderVolCard(v, highlight=false) {
+  const sc = getScoreStyle(v.score);
+  return `
+    <div class="vol-card ${highlight?'highlight':''}" onclick="showVolDetail(${v.id})">
+      <div class="vol-avatar" style="background:${avatarGrads[v.avatar]||avatarGrads.teal};color:#050c1a;">${v.initials}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+          <span style="font-size:13px;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${v.name}</span>
+          <span class="badge ${v.status==='matched'?'badge-violet':'badge-teal'}" style="font-size:10px;white-space:nowrap;">${v.status}</span>
+        </div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:5px;">
+          ${v.skills.slice(0,3).map(s=>`<span style="font-size:10.5px;padding:2px 7px;border-radius:5px;border:1px solid var(--border);color:var(--text-muted);background:rgba(255,255,255,0.02);">${s}</span>`).join('')}
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="progress-track" style="flex:1;height:3px;"><div class="${sc.bar}" style="width:${v.score}%;"></div></div>
+          <i data-lucide="map-pin" style="width:10px;height:10px;color:var(--text-muted);flex-shrink:0;"></i>
+          <span style="font-size:10.5px;color:var(--text-muted);white-space:nowrap;">${v.location}</span>
+        </div>
+      </div>
+      <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:1rem;font-weight:800;color:${sc.text};background:${sc.bg};padding:4px 9px;border-radius:8px;white-space:nowrap;">${v.score}%</div>
+    </div>`;
+}
+
+let volFilter = 'all';
+let volSearch = '';
+function renderVolList(filter) {
+  if (filter) volFilter = filter;
+  const list = document.getElementById('vol-list');
+  if (!list) return;
+  let vols = VOLUNTEERS;
+  if (volFilter !== 'all') vols = vols.filter(v=>v.status===volFilter);
+  if (volSearch) vols = vols.filter(v=>
+    v.name.toLowerCase().includes(volSearch) ||
+    v.location.toLowerCase().includes(volSearch) ||
+    v.skills.some(s=>s.toLowerCase().includes(volSearch))
+  );
+  list.innerHTML = vols.length ? vols.map(v=>renderVolCard(v)).join('') : `<div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:13px;">No volunteers found</div>`;
+  lucide.createIcons();
+}
+
+function filterVols(f, btn) {
+  document.querySelectorAll('#page-volunteers .tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  volFilter = f;
+  renderVolList(f);
+}
+
+function searchVols(q) { volSearch = q.toLowerCase(); renderVolList(); }
+function showVolDetail(id) { const v = VOLUNTEERS.find(x=>x.id===id); if(v) showToast(`👤 ${v.name} · Score: ${v.score}% · ${v.location}`, "info"); }
+
+// =====================================================================
+// RENDER MATCH LIST
+// =====================================================================
+let matchFilter = 'all';
+let matchSkillFilter = '';
+function renderMatchList() {
+  const list = document.getElementById('match-list');
+  if (!list) return;
+  let vols = VOLUNTEERS;
+  if (matchFilter !== 'all') vols = vols.filter(v=>v.status===matchFilter);
+  if (matchSkillFilter) vols = vols.filter(v=>v.skills.some(s=>s.toLowerCase().includes(matchSkillFilter)));
+  vols = [...vols].sort((a,b)=>b.score-a.score);
+  list.innerHTML = vols.map((v,i)=>renderVolCard(v, i===0)).join('');
+  lucide.createIcons();
+}
+
+function filterMatch(f, btn) {
+  document.querySelectorAll('#page-matching .tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  matchFilter = f;
+  renderMatchList();
+}
+function skillFilter(q) { matchSkillFilter = q.toLowerCase(); renderMatchList(); }
+
+// =====================================================================
+// RENDER REAL AI MATCH RESULTS
+// =====================================================================
+const confBadge = { High:'badge-teal', Medium:'badge-gold', Low:'badge-rose' };
+
+let currentMatchedOrg = "Emergency Medical Camp";
+
+async function assignVolunteer(name, org, score, conf, btn) {
+  btn.disabled = true;
+  btn.innerHTML = 'Assigning...';
+  try {
+    await apiPost('/api/assign', {
+      volunteer_name: name,
+      request_title: org,
+      score: score,
+      confidence: conf
+    });
+    showToast(`✅ Successfully allocated ${name} to ${org}!`, "success");
+    btn.innerHTML = 'Assigned ✓';
+    btn.classList.replace('btn-teal', 'badge-teal'); // visual feedback
+    
+    // Update local state temporarily
+    const vol = VOLUNTEERS.find(v => v.name === name);
+    if (vol) vol.status = 'matched';
+    renderVolList();
+    renderMatchList();
+    refreshData();
+  } catch (e) {
+    showToast(`⚠️ Assignment failed: ${e.message}`, "error");
+    btn.disabled = false;
+    btn.innerHTML = '<i data-lucide="check-circle" style="width:12px;height:12px;"></i> Allocate';
+    lucide.createIcons();
+  }
+}
+
+function renderAIMatchResults(matches) {
+  const list = document.getElementById('match-list');
+  if (!list) return;
+  if (!matches || !matches.length) {
+    list.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:13px;">No matches found. Try a different request.</div>`;
+    return;
+  }
+  list.innerHTML = matches.map((m, i) => {
+    const scorePct   = Math.round(m.score * 100);
+    const bdg        = confBadge[m.confidence] || 'badge-muted';
+    const tags        = (m.reason_tags || []).slice(0, 4);
+    const initStr    = initials(m.name);
+    const avatarColors = ['linear-gradient(135deg,#14dcb4,#0ea5e9)', 'linear-gradient(135deg,#8b5cf6,#6d28d9)', 'linear-gradient(135deg,#f0a845,#f59e0b)', 'linear-gradient(135deg,#3b82f6,#1d4ed8)'];
+    const av         = avatarColors[i % avatarColors.length];
+    return `
+      <div class="vol-card ${i===0?'highlight':''}" style="flex-direction:column;align-items:stretch;gap:10px;padding:14px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="vol-avatar" style="background:${av};color:#050c1a;">${initStr}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;">
+              <span style="font-size:13.5px;font-weight:700;color:var(--text-primary);">${i+1}. ${m.name}</span>
+              <span class="badge ${bdg}" style="font-size:10px;">${m.confidence}</span>
+            </div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;">
+              ${tags.map(t=>`<span style="font-size:10.5px;padding:2px 7px;border-radius:5px;border:1px solid var(--border);color:var(--text-muted);background:rgba(255,255,255,0.02);">${t}</span>`).join('')}
+            </div>
+          </div>
+          <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.05rem;font-weight:800;color:var(--accent-teal);background:rgba(20,220,180,0.1);padding:4px 10px;border-radius:8px;white-space:nowrap;">${scorePct}%</div>
+        </div>
+        <div style="padding:10px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid var(--border);">
+          <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:6px;">Breakdown</div>
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;">
+            ${Object.entries(m.breakdown||{}).map(([k,v])=>`
+              <div style="text-align:center;">
+                <div style="font-size:11px;font-weight:700;color:var(--accent-teal);">${Math.round(v*100)}%</div>
+                <div style="font-size:9.5px;color:var(--text-muted);text-transform:capitalize;">${k}</div>
+              </div>`).join('')}
+          </div>
+        </div>
+        <p style="font-size:11.5px;color:var(--text-secondary);font-style:italic;margin:0;line-height:1.5;">&ldquo;${m.explanation}&rdquo;</p>
+        <button class="btn btn-teal" style="font-size:11px;padding:6px 12px;align-self:flex-end;margin-top:5px;width:fit-content;" onclick="assignVolunteer('${m.name}', currentMatchedOrg, ${m.score}, '${m.confidence}', this)">
+          <i data-lucide="check-circle" style="width:12px;height:12px;"></i> Allocate
+        </button>
+      </div>`;
+  }).join('');
+  lucide.createIcons();
+}
+
+// =====================================================================
+// AI MATCHING — calls real backend
+// =====================================================================
+async function runAIMatch() {
+  const btn        = document.getElementById('ai-match-btn');
+  const text       = document.getElementById('ai-btn-text');
+  const statusBar  = document.getElementById('ai-status-bar');
+  const statusText = document.getElementById('ai-status-text');
+  const progressBar= document.getElementById('ai-progress-bar');
+  const pulse      = document.getElementById('ai-pulse');
+  const skels      = document.getElementById('match-skeletons');
+  const matchList  = document.getElementById('match-list');
+
+  btn.disabled = true;
+  text.innerHTML='<span style="display:inline-flex;gap:4px;"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></span> Matching…';
+  statusBar.style.display='block';
+  pulse.style.display='block';
+  matchList.style.opacity='0';
+  skels.style.display='flex';
+
+  const steps = [
+    [15,  'Parsing skill vectors…'],
+    [35,  'Scoring availability overlap…'],
+    [55,  'Computing experience weights…'],
+    [72,  'Running Logistic Regression…'],
+    [88,  'Generating Gemini explanations…'],
+    [100, 'Match complete ✓'],
+  ];
+
+  for (const [p, msg] of steps) {
+    statusText.textContent = msg;
+    progressBar.style.width = p+'%';
+    await sleep(380);
+  }
+
+  // Call the real backend
+  let aiMatches = null;
+  try {
+    // Use the most recent NGO request from local list as the query
+    const req = NGO_REQUESTS[0];
+    currentMatchedOrg = req ? req.org : "Emergency Medical Camp";
+    const urgencyMap = { 'Low':2, 'Medium':3, 'High':4, 'Critical':5 };
+    const result = await apiPost('/api/get_matches', {
+      request: {
+        title:            req ? req.org + ' — ' + (req.skills||[]).join(', ') : 'Emergency Medical Camp',
+        required_skills:  req ? req.skills : ['Medical','First Aid'],
+        city:             req ? req.location : 'Delhi',
+        urgency:          req ? (urgencyMap[req.urgency]||3) : 5
+      }
+    });
+    aiMatches = result.matches || [];
+    document.getElementById('matches-today').textContent =
+      parseInt(document.getElementById('matches-today').textContent) + aiMatches.length;
+    showToast(`🤖 AI matched ${aiMatches.length} volunteer(s) via real backend!`, "success");
+  } catch(e) {
+    showToast(`⚠️ Backend unavailable (${e.message}). Showing demo data.`, "warning");
+    // Graceful fallback: show sorted VOLUNTEERS as before
+    skels.style.display='none';
+    matchList.style.opacity='1';
+    statusBar.style.display='none';
+    pulse.style.display='none';
+    btn.disabled=false;
+    text.innerHTML='<i data-lucide="zap" style="width:14px;height:14px;"></i> Run AI Match';
+    renderMatchList();
+    lucide.createIcons();
+    return;
+  }
+
+  await sleep(300);
+  skels.style.display='none';
+  matchList.style.opacity='1';
+  matchList.style.animation='pageIn 0.35s ease';
+  statusBar.style.display='none';
+  pulse.style.display='none';
+  btn.disabled=false;
+  text.innerHTML='<i data-lucide="zap" style="width:14px;height:14px;"></i> Run AI Match';
+  lucide.createIcons();
+
+  renderAIMatchResults(aiMatches);
+}
+
+// =====================================================================
+// RENDER NGO LIST
+// =====================================================================
+const urgencyStyles = {
+  Low:      { badge:'badge-teal',   label:'Low' },
+  Medium:   { badge:'badge-blue',   label:'Medium' },
+  High:     { badge:'badge-gold',   label:'High' },
+  Critical: { badge:'badge-rose',   label:'🚨 Critical' },
+};
+
+function renderNGOList() {
+  const el = document.getElementById('ngo-req-list');
+  if (!el) return;
+  el.innerHTML = NGO_REQUESTS.map((r,i)=>`
+    <div style="padding:14px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,0.02);transition:all .2s ease;" onmouseenter="this.style.borderColor='rgba(139,92,246,0.25)'" onmouseleave="this.style.borderColor='var(--border)'">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+        <span style="font-size:13px;font-weight:700;color:var(--text-primary);">${r.org}</span>
+        <span class="badge ${urgencyStyles[r.urgency]?.badge||'badge-muted'}" style="font-size:10px;">${urgencyStyles[r.urgency]?.label||r.urgency}</span>
+      </div>
+      <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:7px;">📍 ${r.location} · ${r.vols} volunteers needed</div>
+      ${r.desc?`<div style="font-size:11.5px;color:var(--text-secondary);margin-bottom:7px;">${r.desc}</div>`:''}
+      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;">
+        ${r.skills.map(s=>`<span class="badge badge-violet" style="font-size:10px;">${s}</span>`).join('')}
+      </div>
+      <button class="btn btn-teal" style="font-size:11px;padding:4px 12px;" onclick="matchNGO('${r.org}')">
+        <i data-lucide="sparkles" style="width:12px;height:12px;"></i> Match Now
+      </button>
+    </div>
+  `).join('');
+  lucide.createIcons();
+}
+
+async function matchNGO(org) {
+  showToast(`⚡ AI matching started for ${org}…`, "info");
+  try {
+    currentMatchedOrg = org;
+    const urgencyMap = { 'Low':2, 'Medium':3, 'High':4, 'Critical':5 };
+    const req = NGO_REQUESTS.find(r=>r.org===org) || NGO_REQUESTS[0];
+    const result = await apiPost('/api/get_matches', {
+      request: {
+        title:           org + ' — Request',
+        required_skills: req ? req.skills : [],
+        city:            req ? req.location : '',
+        urgency:         req ? (urgencyMap[req.urgency]||3) : 3
+      }
+    });
+    const matches = result.matches || [];
+    if (matches.length) {
+      showToast(`✅ ${matches.length} match(es) found for ${org}! Go to AI Matching to see results.`, "success");
+      switchPage('matching');
+      renderAIMatchResults(matches);
+    } else {
+      showToast(`No matches found for ${org}. Try adding more volunteers.`, "warning");
+    }
+  } catch(e) {
+    showToast(`Match found for ${org}: 3 volunteers identified (demo).`, "success");
+  }
+}
+
+// =====================================================================
+// RENDER PARTNERS
+// =====================================================================
+function renderPartners() {
+  const el = document.getElementById('partners-grid');
+  if (!el) return;
+  el.innerHTML = PARTNERS.map((p,i)=>`
+    <div class="partner-card fade-up" style="animation-delay:${i*0.06}s;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem;">
+        <div class="partner-logo-bg" style="background:${p.color};border:1px solid ${p.border};">${p.emoji}</div>
+        <div>
+          <div style="font-size:13.5px;font-weight:700;color:var(--text-primary);line-height:1.2;">${p.name}</div>
+          <div style="font-size:11.5px;color:var(--text-muted);">${p.focus}</div>
+        </div>
+      </div>
+      <div class="divider" style="margin-bottom:.9rem;"></div>
+      <div style="display:flex;gap:1.5rem;">
+        <div>
+          <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.3rem;font-weight:800;color:var(--text-primary);">${p.vols.toLocaleString()}</div>
+          <div style="font-size:11px;color:var(--text-muted);">Volunteers</div>
+        </div>
+        <div>
+          <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.3rem;font-weight:800;color:var(--text-primary);">${p.projects}</div>
+          <div style="font-size:11px;color:var(--text-muted);">Projects</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:.9rem;font-size:12px;" onclick="showToast('Opening ${p.name} profile…','info')">View Profile →</button>
+    </div>
+  `).join('');
+}
+
+// =====================================================================
+// RENDER IMPACT STORIES
+// =====================================================================
+function renderImpact() {
+  const el = document.getElementById('impact-cards-grid');
+  if (!el) return;
+  el.innerHTML = IMPACT_STORIES.map((s,i)=>`
+    <div class="impact-card fade-up" style="animation-delay:${i*0.07}s;">
+      <div style="position: relative; height: 220px;">
+        <img src="${s.img}" alt="${s.title}" style="width:100%;height:100%;object-fit:cover;">
+        <div class="overlay"></div>
+        <div style="position:absolute;bottom:0;left:0;right:0;padding:1.25rem;z-index:1;">
+          <div class="impact-card-title">${s.title}</div>
+        </div>
+      </div>
+      <div style="padding:1.1rem 1.25rem;background:var(--bg-card);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius-2xl) var(--radius-2xl);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div style="display:flex;align-items:center;gap:5px;">
+          <i data-lucide="map-pin" style="width:12px;height:12px;color:var(--text-muted);"></i>
+          <span style="font-size:12px;color:var(--text-secondary);">${s.location}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="display:flex;align-items:center;gap:4px;"><i data-lucide="heart" style="width:12px;height:12px;color:var(--accent-rose);"></i><span style="font-size:12px;color:var(--text-secondary);">${s.vols} volunteers</span></div>
+          <span class="badge badge-teal" style="font-size:10px;">${s.stat}</span>
+          <span class="badge badge-muted" style="font-size:10px;">${s.tag}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  lucide.createIcons();
+}
+
+// =====================================================================
+// TASKS
+// =====================================================================
+function renderTasks() {
+  const el = document.getElementById('task-list');
+  if (!el) return;
+  el.innerHTML = TASKS.map((t,i)=>`
+    <div style="display:flex;align-items:center;gap:9px;cursor:pointer;" onclick="toggleTask(${i})">
+      <div style="width:22px;height:22px;border-radius:7px;border:2px solid ${t.done?'var(--accent-teal)':'var(--text-muted)'};background:${t.done?'rgba(20,220,180,0.15)':'transparent'};display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;">
+        ${t.done?`<i data-lucide="check" style="width:12px;height:12px;color:var(--accent-teal);"></i>`:''}
+      </div>
+      <span style="font-size:12.5px;color:${t.done?'var(--text-muted)':'var(--text-secondary)'};${t.done?'text-decoration:line-through;':''}">${t.text}</span>
+    </div>
+  `).join('');
+  lucide.createIcons();
+}
+
+function toggleTask(i) {
+  TASKS[i].done = !TASKS[i].done;
+  renderTasks();
+  showToast(TASKS[i].done ? `✓ "${TASKS[i].text}" completed` : `↩ Task reopened`, TASKS[i].done ? "success" : "info");
+}
+
+function addTask() {
+  const name = prompt("New task name:");
+  if (!name) return;
+  TASKS.push({ text:name, done:false });
+  renderTasks();
+  showToast("Task added!", "success");
+}
+
+// =====================================================================
+// SEARCH
+// =====================================================================
+function handleSearch(q) {
+  if (!q) return;
+  const matches = VOLUNTEERS.filter(v=>
+    v.name.toLowerCase().includes(q.toLowerCase()) ||
+    v.skills.some(s=>s.toLowerCase().includes(q.toLowerCase()))
+  );
+  if (matches.length) showToast(`Found ${matches.length} volunteer(s) matching "${q}"`, "info");
+}
+
+// =====================================================================
+// NOTIFICATION PANEL (simple toast based)
+// =====================================================================
+const NOTIFS = [
+  { msg:"Red Cross India submitted urgent request", type:"warning" },
+  { msg:"Priya Sharma accepted match with Teach For India", type:"success" },
+  { msg:"AI match score improved to 96%", type:"info" },
+];
+function showNotifPanel() {
+  document.getElementById('notif-count').style.display='none';
+  NOTIFS.forEach((n,i)=>{ setTimeout(()=>showToast(n.msg, n.type), i*400); });
+}
+
+// =====================================================================
+// REFRESH DATA
+// =====================================================================
+async function refreshData() {
+  showToast("🔄 Fetching latest data…", "info");
+  await loadInitialData();
+  try {
+    const [vData, hData] = await Promise.allSettled([
+      apiGet('/api/health'),
+      apiGet('/api/get_history')
+    ]);
+    const histCount = hData.status==='fulfilled' ? (hData.value.count||0) : 0;
+    showToast(`✅ Data refreshed! ${histCount} matches in history.`, "success");
+  } catch(e) {
+    showToast("Data refreshed (offline mode).", "info");
+  }
+  animateCounter('stat-vol',    VOLUNTEERS.length);
+  animateCounter('stat-req',    NGO_REQUESTS.length);
+  animateCounter('stat-match',  Math.floor(VOLUNTEERS.filter(v=>v.status==='matched').length));
+  animateCounter('stat-areas',  62);
+  animateProgressBar('req-bar',   68);
+  animateProgressBar('match-bar', 94);
+  renderAllocationStatus();
+  refreshChart();
+}
+
+function renderAllocationStatus() {
+  const container = document.getElementById('steps-container');
+  if (!container) return;
+
+  if (ASSIGNMENTS.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:1rem;font-size:12px;color:var(--text-muted);">No active allocations yet. Go to AI Engine to make a match!</div>';
+    document.getElementById('alloc-pct').textContent = '0%';
+    document.getElementById('alloc-bar').style.width = '0%';
+    return;
+  }
+
+  // Get the most recent assignment to display on the tracker
+  const a = ASSIGNMENTS[0];
+  const isAccepted = a.status === 'accepted';
+  const pct = isAccepted ? '100%' : '78%';
+
+  document.getElementById('alloc-pct').textContent = pct;
+  setTimeout(() => document.getElementById('alloc-bar').style.width = pct, 300);
+
+  container.innerHTML = `
+    <div class="step step-done">
+      <div class="step-icon"><i data-lucide="check-circle-2" style="width:16px;height:16px;"></i></div>
+      <div style="flex:1;">
+        <div style="font-size:12.5px;font-weight:600;color:var(--text-primary);">Request Matched</div>
+        <div style="font-size:11px;color:var(--text-muted);">${a.request_title}</div>
+      </div>
+      <span class="badge badge-teal" style="font-size:10px;">Done</span>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step ${isAccepted ? 'step-done' : 'step-active'}">
+      <div class="step-icon"><i data-lucide="handshake" style="width:16px;height:16px;"></i></div>
+      <div style="flex:1;">
+        <div style="font-size:12.5px;font-weight:600;color:var(--accent-gold);">Volunteer ${isAccepted ? 'Accepted' : 'Allocated'}</div>
+        <div style="font-size:11px;color:var(--text-muted);">${a.volunteer_name}</div>
+        ${!isAccepted ? `<button class="btn btn-teal" style="margin-top:6px;font-size:10px;padding:4px 8px;" onclick="acceptAssignment(${a.id}, this)">Accept Task</button>` : ''}
+      </div>
+      <span class="badge ${isAccepted ? 'badge-teal' : 'badge-gold'}" style="font-size:10px;">${isAccepted ? 'Done' : 'Waiting'}</span>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step ${isAccepted ? 'step-active' : 'step-pending'}">
+      <div class="step-icon"><i data-lucide="map-pin" style="width:16px;height:16px;"></i></div>
+      <div style="flex:1;">
+        <div style="font-size:12.5px;font-weight:600;color:var(--text-muted);">Deployment</div>
+        <div style="font-size:11px;color:var(--text-muted);">${isAccepted ? 'In Progress' : 'Pending'}</div>
+      </div>
+      <span class="badge badge-muted" style="font-size:10px;">${isAccepted ? 'Active' : 'Pending'}</span>
+    </div>
+  `;
+  lucide.createIcons();
+}
+
+async function acceptAssignment(id, btn) {
+  btn.disabled = true;
+  btn.textContent = 'Accepting...';
+  try {
+    const res = await apiPost('/api/accept_assignment', { id: id });
+    if (res.status === 'success') {
+      showToast('🎉 Task accepted by volunteer! Deploying now.', 'success');
+      refreshData();
+    }
+  } catch(e) {
+    showToast('Failed to accept: ' + e.message, 'error');
+    btn.textContent = 'Accept Task';
+    btn.disabled = false;
+  }
+}
+
+// =====================================================================
+// EXPORT (mock)
+// =====================================================================
+function handleExport() {
+  showToast("📊 Generating report… Download will start shortly.", "info");
+  setTimeout(()=>showToast("✅ Report exported: lapper_report_apr2026.xlsx", "success"), 2000);
+}
+
+// =====================================================================
+// TOAST SYSTEM
+// =====================================================================
+function showToast(message, type="success") {
+  const icons = { success:'check-circle', error:'x-circle', info:'info', warning:'alert-triangle' };
+  const iconBg = { success:'rgba(20,220,180,0.15)', error:'rgba(244,63,94,0.15)', info:'rgba(59,130,246,0.15)', warning:'rgba(240,168,69,0.15)' };
+  const iconColor = { success:'var(--accent-teal)', error:'var(--accent-rose)', info:'var(--accent-blue)', warning:'var(--accent-gold)' };
+
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `
+    <div class="toast-icon" style="background:${iconBg[type]||iconBg.info};">
+      <i data-lucide="${icons[type]||'info'}" style="width:14px;height:14px;color:${iconColor[type]};"></i>
+    </div>
+    <div style="flex:1;">
+      <div style="font-size:12.5px;font-weight:600;color:var(--text-primary);line-height:1.4;">${message}</div>
+    </div>
+    <button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;padding:2px;line-height:1;font-size:14px;flex-shrink:0;">✕</button>
+  `;
+  container.appendChild(toast);
+  lucide.createIcons();
+
+  setTimeout(()=>{
+    toast.classList.add('toast-exit');
+    setTimeout(()=>toast.remove(), 320);
+  }, 4500);
+}
+
+// =====================================================================
+// UTILITIES
+// =====================================================================
+function sleep(ms) { return new Promise(r=>setTimeout(r,ms)); }
+function initials(name) {
+  return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+}
+
+// =====================================================================
+// INIT
+// =====================================================================
+document.addEventListener('DOMContentLoaded', async ()=>{
+  lucide.createIcons();
+
+  // Load actual data from backend
+  await loadInitialData();
+
+  // Counters
+  setTimeout(()=>{
+    animateCounter('stat-vol',    VOLUNTEERS.length, 1200);
+    animateCounter('stat-req',    NGO_REQUESTS.length, 1200);
+    animateCounter('stat-match',  Math.floor(VOLUNTEERS.filter(v=>v.status==='matched').length), 1200);
+    animateCounter('stat-areas',  62, 1200);
+    animateProgressBar('req-bar',   68);
+    animateProgressBar('match-bar', 94);
+    renderAllocationStatus();
+  }, 300);
+
+  // Charts
+  setTimeout(()=>initPageCharts('dashboard'), 200);
+
+  // Render lists
+  buildSkillTags('vol-skills-tags', 'selected');
+  buildSkillTags('ngo-skills-tags', 'selected-violet');
+  renderVolList('all');
+  renderMatchList();
+  renderNGOList();
+  renderPartners();
+  renderImpact();
+  renderTasks();
+
+  // Welcome toast
+  setTimeout(()=>showToast("👋 Welcome to Lapper! AI engine is live.", "info"), 800);
+
+  lucide.createIcons();
+});
+</script>
+<!-- ==============================================
+     SETTINGS MODAL
+============================================== -->
+<div id="settings-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;">
+  <div class="card" style="width:400px;padding:2rem;position:relative;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+      <h2 style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.5rem;font-weight:800;color:var(--text-primary);">Settings</h2>
+      <button class="btn btn-ghost" style="padding:0.4rem;border-radius:50%;" onclick="closeSettingsPanel()"><i data-lucide="x" style="width:18px;height:18px;"></i></button>
+    </div>
+    
+    <div style="margin-bottom:1.5rem;">
+      <label style="display:block;margin-bottom:0.5rem;font-size:13px;font-weight:600;color:var(--text-secondary);">Gemini API Key</label>
+      <input type="password" id="gemini-api-key-input" class="form-input" placeholder="Enter your Gemini API Key">
+    </div>
+    
+    <div style="display:flex;justify-content:flex-end;gap:10px;">
+      <button class="btn btn-ghost" onclick="closeSettingsPanel()">Cancel</button>
+      <button class="btn btn-teal" onclick="saveSettings()">Save Configuration</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showSettingsPanel() {
+  document.getElementById('settings-modal').style.display = 'flex';
+}
+function closeSettingsPanel() {
+  document.getElementById('settings-modal').style.display = 'none';
+}
+async function saveSettings() {
+  const apiKey = document.getElementById('gemini-api-key-input').value.trim();
+  if (!apiKey) {
+    showToast("Please enter a valid API Key.", "warning");
+    return;
+  }
+  
+  try {
+    const res = await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gemini_api_key: apiKey })
+    });
+    
+    const data = await res.json();
+    if (data.status === 'success') {
+      showToast("API Key saved successfully!", "success");
+      closeSettingsPanel();
+      // Optionally store in localStorage so it persists across refreshes for the user
+      localStorage.setItem("gemini_api_key", apiKey);
+    } else {
+      showToast("Error saving configuration.", "error");
+    }
+  } catch (err) {
+    console.error(err);
+    showToast("Server error.", "error");
+  }
+}
+
+// Pre-fill if stored locally
+document.addEventListener("DOMContentLoaded", () => {
+  const storedKey = localStorage.getItem("gemini_api_key");
+  if (storedKey) {
+    document.getElementById("gemini-api-key-input").value = storedKey;
+    // Auto-update backend just in case server restarted
+    fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gemini_api_key: storedKey })
+    }).catch(e => console.log('Auto-update API key failed', e));
+  }
+});
+</script>
+</body>
+</html>
