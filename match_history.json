@@ -768,5 +768,73 @@
       }
     ],
     "timestamp": "2026-04-23T23:53:43.537012"
+  },
+  {
+    "request_id": "demo",
+    "request_title": "Emergency Medical Camp",
+    "matches": [
+      {
+        "volunteer_id": "v6",
+        "name": "Sunita Rao",
+        "score": 0.984,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.716
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency",
+          "Experienced volunteer"
+        ],
+        "explanation": "Sunita Rao is available and matches 100% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Excellent skill match, Same city, Available now, Critical urgency, Experienced volunteer."
+      },
+      {
+        "volunteer_id": "v1",
+        "name": "Amit Sharma",
+        "score": 0.98,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 1.0,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.638
+        },
+        "reason_tags": [
+          "Excellent skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency"
+        ],
+        "explanation": "Amit Sharma is available and matches 100% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Excellent skill match, Same city, Available now, Critical urgency."
+      },
+      {
+        "volunteer_id": "v4",
+        "name": "Priya Kapoor",
+        "score": 0.749,
+        "confidence": "High",
+        "breakdown": {
+          "skill": 0.5,
+          "distance": 1.0,
+          "availability": 1.0,
+          "urgency": 1.0,
+          "experience": 0.417
+        },
+        "reason_tags": [
+          "Strong skill match",
+          "Same city",
+          "Available now",
+          "Critical urgency"
+        ],
+        "explanation": "Priya Kapoor is available and matches 50% of required skills for 'Emergency Medical Camp' (same city, critical urgency) \u2014 key reasons: Strong skill match, Same city, Available now, Critical urgency."
+      }
+    ],
+    "timestamp": "2026-04-27T18:25:33.714201"
   }
 ]
